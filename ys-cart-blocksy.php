@@ -3,7 +3,7 @@
  * Plugin Name: YS CART Blocksy 整合
  * Plugin URI: https://yangsheep.com.tw
  * Description: 在 Blocksy 佈景主題的頁首建構器（外觀 → 自訂 → 頁首）提供 YS CART 元件：帳號、商品搜尋、搜尋框。
- * Version: 1.0.0
+ * Version: 1.0.1
  * Author: YANGSHEEP DESIGN
  * Author URI: https://yangsheep.com.tw
  * Text Domain: ys-cart-blocksy
@@ -17,7 +17,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'YS_CART_BLOCKSY_VERSION', '1.0.0' );
+define( 'YS_CART_BLOCKSY_VERSION', '1.0.1' );
 define( 'YS_CART_BLOCKSY_FILE', __FILE__ );
 define( 'YS_CART_BLOCKSY_PATH', plugin_dir_path( __FILE__ ) );
 define( 'YS_CART_BLOCKSY_URL', plugin_dir_url( __FILE__ ) );

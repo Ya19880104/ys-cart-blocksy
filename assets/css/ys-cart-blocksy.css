@@ -82,16 +82,14 @@ a.ys-cart-blocksy-account:hover {
 	display: none;
 }
 
-/* 行內即時結果 dropdown 蓋在 header 之上 */
+/* 行內即時結果 dropdown 蓋在 header 之上。
+   v1.0.1：只提升 z-index——定位/寬度/左右延伸方向交給核心 v2.52.30 的
+   positionResults 機制（寫死 left/right 會蓋掉核心的 --align-end 方向判定）。 */
 .ys-cart-blocksy-search-bar .ys-ec-search-input-wrap {
 	position: relative;
 }
 
 .ys-cart-blocksy-search-bar .ys-ec-search-results {
-	position: absolute;
-	top: calc(100% + 6px);
-	left: 0;
-	right: 0;
 	z-index: 999999;
 }
 
