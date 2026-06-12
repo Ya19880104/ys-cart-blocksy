@@ -1,0 +1,51 @@
+<?php
+/**
+ * Plugin Name: YS CART Blocksy 整合
+ * Plugin URI: https://yangsheep.com.tw
+ * Description: 在 Blocksy 佈景主題的頁首建構器（外觀 → 自訂 → 頁首）提供 YS CART 元件：帳號、商品搜尋、搜尋框。
+ * Version: 1.0.0
+ * Author: YANGSHEEP DESIGN
+ * Author URI: https://yangsheep.com.tw
+ * Text Domain: ys-cart-blocksy
+ * Domain Path: /languages
+ * Requires at least: 6.0
+ * Requires PHP: 8.1
+ * License: GPL v2 or later
+ *
+ * @package YangSheep\CartBlocksy
+ */
+
+defined( 'ABSPATH' ) || exit;
+
+define( 'YS_CART_BLOCKSY_VERSION', '1.0.0' );
+define( 'YS_CART_BLOCKSY_FILE', __FILE__ );
+define( 'YS_CART_BLOCKSY_PATH', plugin_dir_path( __FILE__ ) );
+define( 'YS_CART_BLOCKSY_URL', plugin_dir_url( __FILE__ ) );
+
+// PHP 版本檢查
+if ( version_compare( PHP_VERSION, '8.1', '<' ) ) {
+	add_action( 'admin_notices', function () {
+		echo '<div class="notice notice-error"><p>';
+		echo esc_html__( 'YS CART Blocksy 整合需要 PHP 8.1 以上版本。', 'ys-cart-blocksy' );
+		echo '</p></div>';
+	} );
+	return;
+}
+
+// PSR-4 Autoloader
+spl_autoload_register( function ( $class ) {
+	$prefix   = 'YangSheep\\CartBlocksy\\';
+	$base_dir = YS_CART_BLOCKSY_PATH . 'src/';
+
+	$len = strlen( $prefix );
+	if ( strncmp( $prefix, $class, $len ) !== 0 ) {
+		return;
+	}
+
+	$file = $base_dir . str_replace( '\\', '/', substr( $class, $len ) ) . '.php';
+	if ( file_exists( $file ) ) {
+		require $file;
+	}
+} );
+
+add_action( 'plugins_loaded', [ \YangSheep\CartBlocksy\YSCartBlocksyPlugin::class, 'boot' ] );
