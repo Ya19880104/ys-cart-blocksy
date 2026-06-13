@@ -144,6 +144,37 @@ a.ys-cart-blocksy-account:hover {
 	border-color: var(--ys-bar-border, var(--ys-ec-border, #d8dee5));
 }
 
+/* 智慧搜尋 bar 的送出鈕：對齊核心乾淨樣式。Blocksy 頁首會對 button[type="submit"]
+   套主題 palette 底色（→ 圖1 那個米色方塊）。核心 .ys-ec-search-submit 早有
+   inputwrap > submit[type=submit] 高權重防護，智慧版 .ys-ss-submit 原本沒有 →
+   這裡補上同級防護（不用 !important），把它變回內嵌透明的放大鏡。 */
+.ys-cart-blocksy-search-bar .ys-ss-input {
+	padding-right: 44px;
+}
+
+.ys-cart-blocksy-search-bar .ys-ss-inputwrap > .ys-ss-submit[type="submit"] {
+	position: absolute;
+	top: 50%;
+	right: 8px;
+	transform: translateY(-50%);
+	width: 32px;
+	min-width: 0;
+	height: 32px;
+	min-height: 0;
+	padding: 4px;
+	margin: 0;
+	border: 0;
+	border-radius: 6px;
+	background: transparent;
+	box-shadow: none;
+	color: var(--ys-bar-text, var(--ys-ec-primary, #6b8a9a));
+}
+
+.ys-cart-blocksy-search-bar .ys-ss-inputwrap > .ys-ss-submit[type="submit"]:hover {
+	background: rgba(107, 138, 154, 0.1);
+	color: var(--ys-bar-text, var(--ys-ec-primary, #6b8a9a));
+}
+
 /* header bar 高度有限：熱門關鍵字列在行內框收起（overlay／彈窗仍會顯示） */
 .ys-cart-blocksy-search-bar .ys-ec-search-keywords,
 .ys-cart-blocksy-search-bar .ys-ss-suggest .ys-ss-suggest__title {
@@ -156,9 +187,15 @@ a.ys-cart-blocksy-account:hover {
 	z-index: 999999;
 }
 
-/* 智慧搜尋框的 dropdown（.ys-ss-panel）自帶定位，這裡同樣只管 z-index。 */
+/* 智慧搜尋框的 dropdown（.ys-ss-panel）：頁首裡比照核心 v2.52.30 放大寬度，
+   避免商品結果擠成一條；改 right 錨定向左延伸（頁首搜尋多靠右，防止向右溢出
+   視窗）。寬度取「容器寬」與「420／92vw」較大者 → full 寬框維持貼齊，sm/md
+   窄框放大到 420。 */
 .ys-cart-blocksy-search-bar .ys-ss-panel {
 	z-index: 999999;
+	left: auto;
+	right: 0;
+	width: max(100%, min(420px, 92vw));
 }
 
 /* Customizer 預覽：功能未啟用的提示 */
