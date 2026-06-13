@@ -1,8 +1,10 @@
 /**
- * YS CART Blocksy 整合 — header 元件對齊樣式。
+ * YS CART Blocksy 整合 — header 元件對齊樣式（v1.1.0）。
  *
- * 原則：顏色一律 currentColor / inherit，跟隨 Blocksy header 的文字顏色設定
- * （透明/置頂模式自動適配）；只處理尺寸、對齊與 header 情境的收斂。
+ * 顏色／尺寸消費 Customizer 選項輸出的 CSS 變數（dynamic-styles.php 寫在
+ * [data-id] 實例層）：--theme-icon-size / --theme-icon-color /
+ * --theme-icon-hover-color / --ys-bar-height / --ys-bar-text / --ys-bar-bg /
+ * --ys-bar-border；未設定時 fallback 跟隨 Blocksy header 文字色。
  */
 
 /* ─── 共通 ─── */
@@ -15,6 +17,8 @@
 .ys-cart-blocksy-icon {
 	display: block;
 	flex: 0 0 auto;
+	width: var(--theme-icon-size, 18px);
+	height: var(--theme-icon-size, 18px);
 }
 
 .ys-cart-blocksy-label {
@@ -23,21 +27,47 @@
 	white-space: nowrap;
 }
 
-/* ─── 帳號 ─── */
+/* ─── 帳號（連結模式） ─── */
 a.ys-cart-blocksy-account {
-	color: inherit;
+	color: var(--theme-icon-color, inherit);
 	text-decoration: none;
 	padding: 5px;
 	border-radius: 4px;
-	transition: opacity 0.15s ease;
+	transition: color 0.15s ease, opacity 0.15s ease;
 }
 
 a.ys-cart-blocksy-account:hover {
-	opacity: 0.75;
+	color: var(--theme-icon-hover-color, inherit);
+	opacity: 0.85;
 }
 
-/* ─── 搜尋 icon ───
-   核心 .ys-ec-search-icon-trigger 在 header 情境收斂成純 icon 鈕、繼承 header 色 */
+/* ─── 帳號（核心模式：包核心 [ys_ec_user_icon] 輸出） ─── */
+.ys-cart-blocksy-account--core {
+	position: relative;
+	color: var(--theme-icon-color, inherit);
+}
+
+.ys-cart-blocksy-account--core:hover {
+	color: var(--theme-icon-hover-color, inherit);
+}
+
+.ys-cart-blocksy-account--core .ys-ec-user-icon {
+	color: inherit;
+}
+
+.ys-cart-blocksy-account--core .ys-ec-user-icon svg,
+.ys-cart-blocksy-account--core .ys-ec-user-icon-svg {
+	width: var(--theme-icon-size, 18px);
+	height: var(--theme-icon-size, 18px);
+	display: block;
+}
+
+/* 下拉選單文字不吃 header icon 色（維持核心配色可讀性） */
+.ys-cart-blocksy-account--core .ys-ec-user-dropdown {
+	color: initial;
+}
+
+/* ─── 搜尋 icon（核心 overlay 觸發鈕） ─── */
 .ys-cart-blocksy-search .ys-ec-search-icon-trigger {
 	display: inline-flex;
 	align-items: center;
@@ -46,23 +76,50 @@ a.ys-cart-blocksy-account:hover {
 	border: 0;
 	padding: 5px;
 	margin: 0;
-	color: inherit;
+	color: var(--theme-icon-color, inherit);
 	cursor: pointer;
 	border-radius: 4px;
-	transition: opacity 0.15s ease;
+	transition: color 0.15s ease, opacity 0.15s ease;
 }
 
 .ys-cart-blocksy-search .ys-ec-search-icon-trigger:hover {
-	opacity: 0.75;
+	color: var(--theme-icon-hover-color, inherit);
+	opacity: 0.85;
 }
 
 .ys-cart-blocksy-search .ys-ec-search-icon-trigger svg {
 	display: block;
-	width: 18px;
-	height: 18px;
+	width: var(--theme-icon-size, 18px);
+	height: var(--theme-icon-size, 18px);
 }
 
-/* ─── 搜尋框 ─── */
+/* ─── 智慧搜尋 icon（智慧彈窗觸發鈕） ─── */
+.ys-cart-blocksy-smart-search .ys-ss-icon-trigger {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	background: none;
+	border: 0;
+	padding: 5px;
+	margin: 0;
+	color: var(--theme-icon-color, inherit);
+	cursor: pointer;
+	border-radius: 4px;
+	transition: color 0.15s ease, opacity 0.15s ease;
+}
+
+.ys-cart-blocksy-smart-search .ys-ss-icon-trigger:hover {
+	color: var(--theme-icon-hover-color, inherit);
+	opacity: 0.85;
+}
+
+.ys-cart-blocksy-smart-search .ys-ss-icon-trigger svg {
+	display: block;
+	width: var(--theme-icon-size, 20px);
+	height: var(--theme-icon-size, 20px);
+}
+
+/* ─── 搜尋框（核心版與智慧版共用寬度檔位與配色變數） ─── */
 .ys-cart-blocksy-search-bar {
 	min-width: 0;
 }
@@ -72,24 +129,35 @@ a.ys-cart-blocksy-account:hover {
 .ys-cart-blocksy-search-bar--lg  { width: 360px; }
 .ys-cart-blocksy-search-bar--full { flex: 1 1 auto; width: auto; min-width: 160px; }
 
-.ys-cart-blocksy-search-bar .ys-ec-search-form {
+.ys-cart-blocksy-search-bar .ys-ec-search-form,
+.ys-cart-blocksy-search-bar .ys-ss-form {
 	margin: 0;
 	width: 100%;
 }
 
-/* header bar 高度有限：熱門關鍵字列在行內框收起（overlay 仍會顯示） */
-.ys-cart-blocksy-search-bar .ys-ec-search-keywords {
+/* 高度／配色（變數由各實例 dynamic CSS 設定） */
+.ys-cart-blocksy-search-bar .ys-ec-search-input,
+.ys-cart-blocksy-search-bar .ys-ss-input {
+	height: var(--ys-bar-height, auto);
+	color: var(--ys-bar-text, inherit);
+	background: var(--ys-bar-bg, #fff);
+	border-color: var(--ys-bar-border, var(--ys-ec-border, #d8dee5));
+}
+
+/* header bar 高度有限：熱門關鍵字列在行內框收起（overlay／彈窗仍會顯示） */
+.ys-cart-blocksy-search-bar .ys-ec-search-keywords,
+.ys-cart-blocksy-search-bar .ys-ss-suggest .ys-ss-suggest__title {
 	display: none;
 }
 
-/* 行內即時結果 dropdown 蓋在 header 之上。
-   v1.0.1：只提升 z-index——定位/寬度/左右延伸方向交給核心 v2.52.30 的
-   positionResults 機制（寫死 left/right 會蓋掉核心的 --align-end 方向判定）。 */
-.ys-cart-blocksy-search-bar .ys-ec-search-input-wrap {
-	position: relative;
+/* 行內即時結果視窗：只提升 z-index 蓋過頁首 —— 定位交給核心 v2.52.30 的
+   結果視窗機制（v1.0.1 修正，勿再錨定 left/right）。 */
+.ys-cart-blocksy-search-bar .ys-ec-search-results {
+	z-index: 999999;
 }
 
-.ys-cart-blocksy-search-bar .ys-ec-search-results {
+/* 智慧搜尋框的 dropdown（.ys-ss-panel）自帶定位，這裡同樣只管 z-index。 */
+.ys-cart-blocksy-search-bar .ys-ss-panel {
 	z-index: 999999;
 }
 

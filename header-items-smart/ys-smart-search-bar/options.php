@@ -1,6 +1,6 @@
 <?php
 /**
- * YS 搜尋框 — Customizer 選項（General／Design 雙 tab）。
+ * YS 智慧搜尋框 — Customizer 選項。
  *
  * @package YangSheep\CartBlocksy
  */
@@ -13,15 +13,15 @@ $options = [
 		'type'    => 'tab',
 		'options' => [
 
-			'ys_search_bar_placeholder' => [
+			'ys_smart_bar_placeholder' => [
 				'label'  => __( '提示文字（placeholder）', 'ys-cart-blocksy' ),
 				'type'   => 'text',
 				'value'  => '',
 				'design' => 'block',
-				'desc'   => __( '留空使用 YS CART 商店設定中的預設提示文字。', 'ys-cart-blocksy' ),
+				'desc'   => __( '留空使用智慧搜尋預設提示文字。', 'ys-cart-blocksy' ),
 			],
 
-			'ys_search_bar_width' => [
+			'ys_smart_bar_width' => [
 				'label'   => __( '寬度', 'ys-cart-blocksy' ),
 				'type'    => 'ct-select',
 				'value'   => 'md',

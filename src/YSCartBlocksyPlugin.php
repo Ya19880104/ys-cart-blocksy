@@ -44,6 +44,13 @@ final class YSCartBlocksyPlugin {
 	public static function register_item_paths( $paths ): array {
 		$paths   = is_array( $paths ) ? $paths : [];
 		$paths[] = YS_CART_BLOCKSY_PATH . 'header-items';
+
+		// v1.1.0：智慧搜尋元件 — 只在 ys-cart-smart-search 啟用時註冊
+		//（未啟用＝建構器完全不顯示這兩個元件）。
+		if ( defined( 'YS_SMART_SEARCH_VERSION' ) ) {
+			$paths[] = YS_CART_BLOCKSY_PATH . 'header-items-smart';
+		}
+
 		return $paths;
 	}
 

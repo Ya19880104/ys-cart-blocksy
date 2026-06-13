@@ -2,8 +2,8 @@
 /**
  * Plugin Name: YS CART Blocksy 整合
  * Plugin URI: https://yangsheep.com.tw
- * Description: 在 Blocksy 佈景主題的頁首建構器（外觀 → 自訂 → 頁首）提供 YS CART 元件：帳號、商品搜尋、搜尋框。
- * Version: 1.0.1
+ * Description: 在 Blocksy 佈景主題的頁首建構器（外觀 → 自訂 → 頁首）提供 YS CART 元件：帳號（含核心下拉）、搜尋 Icon、搜尋框，以及智慧搜尋元件；尺寸顏色可調。
+ * Version: 1.1.0
  * Author: YANGSHEEP DESIGN
  * Author URI: https://yangsheep.com.tw
  * Text Domain: ys-cart-blocksy
@@ -17,7 +17,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'YS_CART_BLOCKSY_VERSION', '1.0.1' );
+define( 'YS_CART_BLOCKSY_VERSION', '1.1.0' );
 define( 'YS_CART_BLOCKSY_FILE', __FILE__ );
 define( 'YS_CART_BLOCKSY_PATH', plugin_dir_path( __FILE__ ) );
 define( 'YS_CART_BLOCKSY_URL', plugin_dir_url( __FILE__ ) );
@@ -47,5 +47,21 @@ spl_autoload_register( function ( $class ) {
 		require $file;
 	}
 } );
+
+// YS Plugin Hub Client（更新功能）— 防重複載入：站上其他 YS 外掛可能已載入。
+if ( is_readable( YS_CART_BLOCKSY_PATH . 'vendor/autoload.php' ) ) {
+	require_once YS_CART_BLOCKSY_PATH . 'vendor/autoload.php';
+}
+
+add_action( 'plugins_loaded', static function (): void {
+	if ( class_exists( '\YangSheep\PluginHubClient\YSPluginHubClient' ) ) {
+		\YangSheep\PluginHubClient\YSPluginHubClient::register( [
+			'slug'        => 'ys-cart-blocksy',
+			'version'     => YS_CART_BLOCKSY_VERSION,
+			'plugin_file' => __FILE__,
+			'name'        => 'YS CART Blocksy 整合',
+		] );
+	}
+}, 30 );
 
 add_action( 'plugins_loaded', [ \YangSheep\CartBlocksy\YSCartBlocksyPlugin::class, 'boot' ] );

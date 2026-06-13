@@ -1,9 +1,6 @@
 <?php
 /**
- * YS 搜尋 Icon — Customizer 選項（General／Design 雙 tab，對齊 Blocksy 慣例）。
- *
- * 尺寸/顏色選項刻意「不設 transport」（= refresh 模式）：免 sync.js，
- * Customizer 重載預覽時 dynamic-styles.php 於 server 端重跑即生效。
+ * YS 智慧搜尋 Icon — Customizer 選項。
  *
  * @package YangSheep\CartBlocksy
  */
@@ -21,33 +18,14 @@ $options = [
 				'type'       => 'ct-slider',
 				'min'        => 10,
 				'max'        => 50,
-				'value'      => 18,
+				'value'      => 20,
 				'responsive' => true,
-			],
-
-			'ys_search_show_label' => [
-				'label' => __( '顯示文字標籤', 'ys-cart-blocksy' ),
-				'type'  => 'ct-switch',
-				'value' => 'no',
-			],
-
-			blocksy_rand_md5() => [
-				'type'      => 'ct-condition',
-				'condition' => [ 'ys_search_show_label' => 'yes' ],
-				'options'   => [
-					'ys_search_label' => [
-						'label'  => __( '標籤文字', 'ys-cart-blocksy' ),
-						'type'   => 'text',
-						'value'  => __( '搜尋', 'ys-cart-blocksy' ),
-						'design' => 'block',
-					],
-				],
 			],
 
 			blocksy_rand_md5() => [
 				'type'  => 'ct-title',
 				'label' => __( '提示', 'ys-cart-blocksy' ),
-				'desc'  => __( '本元件使用 YS CART「商品即時搜尋」功能（商店設定 → 功能模組）。功能關閉時前台不會輸出。', 'ys-cart-blocksy' ),
+				'desc'  => __( '彈窗內容（熱門關鍵字數量、搜尋內容與呈現）請至「YS CART → 智慧搜尋」設定。', 'ys-cart-blocksy' ),
 			],
 		],
 	],

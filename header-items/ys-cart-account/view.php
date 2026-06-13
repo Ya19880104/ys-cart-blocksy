@@ -1,9 +1,13 @@
 <?php
 /**
- * YS 帳號 — 前台 render。
+ * YS 帳號 — 前台 render（v1.1.0）。
  *
- * 收到的變數（由 Blocksy builder 傳入）：$atts、$attr、$device、$item_id…
- * 根元素必須輸出 blocksy_attr_to_html( $attr )（Customizer selective refresh 依賴）。
+ * 核心模式（預設）：直接呼叫核心 `YSUserIcon::render()` —— 與 [ys_ec_user_icon]
+ * 100% 相同：未登入點擊開核心登入 Modal（YSAuthGate wp_footer 輸出、ys-ec-auth.js
+ * 驅動）、登入後顯示會員下拉（我的帳號／訂單紀錄／訂單查詢／登出，JS click toggle）。
+ * 核心 ys-ec-common.css + ys-ec-auth.js 已全前台載入，零額外接線。
+ *
+ * 連結模式：v1.0.0 行為（未登入→登入頁／登入後→會員中心，皆可自訂連結）。
  *
  * @package YangSheep\CartBlocksy
  */
@@ -14,13 +18,33 @@ if ( ! isset( $device ) ) {
 	$device = 'desktop';
 }
 
-// fail-soft：核心不在就不輸出任何東西。
 if ( ! class_exists( '\YangSheep\Ecommerce\Services\Setup\YSPageResolver' ) ) {
 	return;
 }
 
-$ys_logged_in = is_user_logged_in();
+$ys_mode       = (string) blocksy_akg( 'ys_account_mode', $atts, 'core' );
+$ys_show_label = 'yes' === (string) blocksy_akg( 'ys_account_show_label', $atts, 'no' );
+$ys_label      = (string) blocksy_akg( 'ys_account_label', $atts, __( '帳號', 'ys-cart-blocksy' ) );
+$ys_logged_in  = is_user_logged_in();
 
+/* ── 核心模式 ── */
+if ( 'core' === $ys_mode && class_exists( '\YangSheep\Ecommerce\Frontend\YSUserIcon' ) ) {
+	?>
+	<span
+		class="ys-cart-blocksy-item ys-cart-blocksy-account ys-cart-blocksy-account--core"
+		<?php echo blocksy_attr_to_html( $attr ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
+		<?php
+		echo \YangSheep\Ecommerce\Frontend\YSUserIcon::render( [ 'class' => 'ys-cart-blocksy-account-core' ] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- 核心輸出已自含跳脫。
+		?>
+		<?php if ( $ys_show_label && '' !== $ys_label ) : ?>
+			<span class="ys-cart-blocksy-label"><?php echo esc_html( $ys_label ); ?></span>
+		<?php endif; ?>
+	</span>
+	<?php
+	return;
+}
+
+/* ── 連結模式（v1.0.0 行為） ── */
 $ys_target = (string) blocksy_akg(
 	$ys_logged_in ? 'ys_account_loggedin_target' : 'ys_account_loggedout_target',
 	$atts,
@@ -40,9 +64,7 @@ if ( 'custom' === $ys_target && '' !== $ys_custom ) {
 	$ys_url = \YangSheep\Ecommerce\Services\Setup\YSPageResolver::login_url();
 }
 
-$ys_show_label = 'yes' === (string) blocksy_akg( 'ys_account_show_label', $atts, 'no' );
-$ys_label      = (string) blocksy_akg( 'ys_account_label', $atts, __( '帳號', 'ys-cart-blocksy' ) );
-$ys_aria       = $ys_logged_in
+$ys_aria = $ys_logged_in
 	? __( '會員中心', 'ys-cart-blocksy' )
 	: __( '登入', 'ys-cart-blocksy' );
 ?>
