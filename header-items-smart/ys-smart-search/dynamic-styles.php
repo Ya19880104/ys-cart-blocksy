@@ -1,6 +1,6 @@
 <?php
 /**
- * YS 智慧搜尋 Icon — 選項驅動 CSS（Blocksy dynamic-styles 合約）。
+ * YS 進階搜尋 Icon — 選項驅動 CSS（Blocksy dynamic-styles 合約）。
  * scope 變數：$css/$tablet_css/$mobile_css/$atts/$root_selector（由 builder extract 注入）。
  *
  * @package YangSheep\CartBlocksy

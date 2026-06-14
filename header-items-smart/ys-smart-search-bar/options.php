@@ -1,6 +1,6 @@
 <?php
 /**
- * YS 智慧搜尋框 — Customizer 選項。
+ * YS 進階搜尋框 — Customizer 選項。
  *
  * @package YangSheep\CartBlocksy
  */
@@ -18,7 +18,7 @@ $options = [
 				'type'   => 'text',
 				'value'  => '',
 				'design' => 'block',
-				'desc'   => __( '留空使用智慧搜尋預設提示文字。', 'ys-cart-blocksy' ),
+				'desc'   => __( '留空使用進階搜尋預設提示文字。', 'ys-cart-blocksy' ),
 			],
 
 			'ys_smart_bar_width' => [

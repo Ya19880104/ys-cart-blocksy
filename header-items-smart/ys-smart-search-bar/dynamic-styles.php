@@ -1,6 +1,6 @@
 <?php
 /**
- * YS 智慧搜尋框 — 選項驅動 CSS。
+ * YS 進階搜尋框 — 選項驅動 CSS。
  *
  * @package YangSheep\CartBlocksy
  */

@@ -1,6 +1,6 @@
 <?php
 /**
- * YS 智慧搜尋 Icon — Customizer 選項。
+ * YS 進階搜尋 Icon — Customizer 選項。
  *
  * @package YangSheep\CartBlocksy
  */
@@ -25,7 +25,7 @@ $options = [
 			blocksy_rand_md5() => [
 				'type'  => 'ct-title',
 				'label' => __( '提示', 'ys-cart-blocksy' ),
-				'desc'  => __( '彈窗內容（熱門關鍵字數量、搜尋內容與呈現）請至「YS CART → 智慧搜尋」設定。', 'ys-cart-blocksy' ),
+				'desc'  => __( '彈窗內容（熱門關鍵字數量、搜尋內容與呈現）請至「YS CART → 進階搜尋」設定。', 'ys-cart-blocksy' ),
 			],
 		],
 	],

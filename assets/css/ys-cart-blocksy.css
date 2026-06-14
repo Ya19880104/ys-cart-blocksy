@@ -93,7 +93,7 @@ a.ys-cart-blocksy-account:hover {
 	height: var(--theme-icon-size, 18px);
 }
 
-/* ─── 智慧搜尋 icon（智慧彈窗觸發鈕） ─── */
+/* ─── 進階搜尋 icon（智慧彈窗觸發鈕） ─── */
 .ys-cart-blocksy-smart-search .ys-ss-icon-trigger {
 	display: inline-flex;
 	align-items: center;
@@ -144,7 +144,7 @@ a.ys-cart-blocksy-account:hover {
 	border-color: var(--ys-bar-border, var(--ys-ec-border, #d8dee5));
 }
 
-/* 智慧搜尋 bar 的送出鈕：對齊核心乾淨樣式。Blocksy 頁首會對 button[type="submit"]
+/* 進階搜尋 bar 的送出鈕：對齊核心乾淨樣式。Blocksy 頁首會對 button[type="submit"]
    套主題 palette 底色（→ 圖1 那個米色方塊）。核心 .ys-ec-search-submit 早有
    inputwrap > submit[type=submit] 高權重防護，智慧版 .ys-ss-submit 原本沒有 →
    這裡補上同級防護（不用 !important），把它變回內嵌透明的放大鏡。 */
@@ -187,7 +187,7 @@ a.ys-cart-blocksy-account:hover {
 	z-index: 999999;
 }
 
-/* 智慧搜尋框的 dropdown（.ys-ss-panel）：頁首裡比照核心 v2.52.30 放大寬度，
+/* 進階搜尋框的 dropdown（.ys-ss-panel）：頁首裡比照核心 v2.52.30 放大寬度，
    避免商品結果擠成一條；改 right 錨定向左延伸（頁首搜尋多靠右，防止向右溢出
    視窗）。寬度取「容器寬」與「420／92vw」較大者 → full 寬框維持貼齊，sm/md
    窄框放大到 420。 */

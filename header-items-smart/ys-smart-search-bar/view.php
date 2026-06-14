@@ -1,6 +1,6 @@
 <?php
 /**
- * YS 智慧搜尋框 — 前台 render（重用 ys-cart-smart-search 的 render_bar()）。
+ * YS 進階搜尋框 — 前台 render（重用 ys-cart-smart-search 的 render_bar()）。
  *
  * @package YangSheep\CartBlocksy
  */
@@ -14,7 +14,7 @@ if ( ! isset( $device ) ) {
 if ( ! class_exists( '\YangSheep\SmartSearch\Frontend\YSSsShortcodes' ) ) {
 	if ( is_customize_preview() ) {
 		echo '<span class="ys-cart-blocksy-item ys-cart-blocksy-disabled" ' . blocksy_attr_to_html( $attr ) . '>' // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-			. esc_html__( '需啟用 YS CART 智慧搜尋', 'ys-cart-blocksy' )
+			. esc_html__( '需啟用 YS CART 進階搜尋', 'ys-cart-blocksy' )
 			. '</span>';
 	}
 	return;
@@ -36,6 +36,6 @@ if ( '' !== $ys_placeholder ) {
 	class="ys-cart-blocksy-item ys-cart-blocksy-search-bar ys-cart-blocksy-smart-bar ys-cart-blocksy-search-bar--<?php echo esc_attr( $ys_width ); ?>"
 	<?php echo blocksy_attr_to_html( $attr ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
 	<?php
-	echo \YangSheep\SmartSearch\Frontend\YSSsShortcodes::render_bar( $ys_bar_atts ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- 智慧搜尋輸出已自含跳脫。
+	echo \YangSheep\SmartSearch\Frontend\YSSsShortcodes::render_bar( $ys_bar_atts ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- 進階搜尋輸出已自含跳脫。
 	?>
 </div>
