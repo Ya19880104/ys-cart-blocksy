@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.3] - 2026-06-18
+
+### Added
+
+- Add a `YS Cart` Blocksy header item that links to the YS CART cart page and
+  displays an optional cart count badge. This keeps the header cart icon
+  independent from WooCommerce after Woo modules are disabled.
+
 ## [1.1.2] - 2026-06-15
 
 ### Changed

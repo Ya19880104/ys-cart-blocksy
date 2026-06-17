@@ -41,6 +41,46 @@ a.ys-cart-blocksy-account:hover {
 	opacity: 0.85;
 }
 
+/* YS cart icon */
+a.ys-cart-blocksy-cart {
+	position: relative;
+	color: var(--theme-icon-color, inherit);
+	text-decoration: none;
+	padding: 5px;
+	border-radius: 4px;
+	transition: color 0.15s ease, opacity 0.15s ease;
+}
+
+a.ys-cart-blocksy-cart:hover {
+	color: var(--theme-icon-hover-color, inherit);
+	opacity: 0.85;
+}
+
+.ys-cart-blocksy-cart-icon-wrap {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.ys-cart-blocksy-cart-badge {
+	position: absolute;
+	top: -7px;
+	right: -9px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 16px;
+	height: 16px;
+	padding: 0 4px;
+	border-radius: 999px;
+	background: var(--theme-palette-color-1, #930a13);
+	color: #fff;
+	font-size: 10px;
+	font-weight: 700;
+	line-height: 1;
+}
+
 /* ─── 帳號（核心模式：包核心 [ys_ec_user_icon] 輸出） ─── */
 .ys-cart-blocksy-account--core {
 	position: relative;
