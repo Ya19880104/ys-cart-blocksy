@@ -1,5 +1,5 @@
 /**
- * YS CART Blocksy 整合 — 頁首購物車 → 迷你購物車 drawer（v1.2.1）。
+ * YS CART Blocksy 整合 — 頁首購物車 → 迷你購物車 drawer（v1.2.2）。
  *
  * 只做一件事：把「drawer 模式」的頁首購物車 icon 接到核心的迷你購物車面板
  * （#ys-ec-mini-cart-panel，核心 ys-ec-cart.js 以 .ys-ec-mini-cart-open 開關）。
@@ -18,6 +18,12 @@
  *  - 點擊改在 bubble phase、不 stopPropagation（佈景／analytics 的 document 監聽照常收到）；開關延後到
  *    這次事件派送結束（setTimeout 0），核心「點面板外就關閉」的 document 監聽不會把剛開的面板又關掉。
  *    開／關的依據在 capture phase 先讀（核心監聽可能在我們之前就把面板關了）。
+ *
+ * v1.2.2（R49 Minor）
+ *  - Customizer selective refresh 會把頁首元件整個重繪（新的 trigger 節點、伺服器端印的 aria-expanded="false"），
+ *    面板若正開著就與實況不符：另一個 MutationObserver 看 document.body 的新增節點，只有新增的子樹含 trigger
+ *    時才（去抖後）把 aria-expanded 同步回面板實況；不對每次 DOM 變動掃全頁。
+ *  - inert 退路（aria-hidden）記錄每個元素原本的值（null＝沒有屬性），關閉時精確還原，不再一律移除屬性。
  */
 (function () {
 	'use strict';
@@ -33,6 +39,7 @@
 	var opener = null;         // 關閉時要把焦點還給誰
 	var inerted = [];          // 本檔加上 inert／aria-hidden 的元素（關閉時還原）
 	var openAtCapture = false; // 點擊 trigger 當下（capture phase）面板是否已開
+	var triggerSyncTimer = 0;  // 新增 trigger（selective refresh 重繪）後同步 aria 的去抖計時器
 
 	function panel() { return document.getElementById('ys-ec-mini-cart-panel'); }
 	function wrapper() { return document.getElementById('ys-ec-mini-cart'); }
@@ -123,15 +130,17 @@
 			var parent = node.parentElement;
 			Array.prototype.forEach.call(parent.children, function (sib) {
 				if (sib === node || SKIP_INERT_TAGS[sib.tagName]) return;
-				var rec = { el: sib, inert: false, hidden: false };
+				var rec = { el: sib, inert: false, hidden: false, prevHidden: null };
 				if (supportsInert) {
 					if (sib.hasAttribute('inert')) return; // 別人加的，不動
 					sib.setAttribute('inert', '');
 					rec.inert = true;
 				} else {
-					if (sib.getAttribute('aria-hidden') === 'true') return;
+					var prev = sib.getAttribute('aria-hidden'); // null＝原本沒有屬性；關閉時要精確還原
+					if (prev === 'true') return; // 原本就藏著（別人加的），不動
 					sib.setAttribute('aria-hidden', 'true');
 					rec.hidden = true;
+					rec.prevHidden = prev;
 				}
 				inerted.push(rec);
 			});
@@ -139,10 +148,14 @@
 		}
 	}
 
+	/** 關閉時精確還原：inert 移除；aria-hidden 退路依記錄的原值（原本沒有屬性→移除，有→設回原值）。 */
 	function restoreInert() {
 		inerted.forEach(function (rec) {
 			if (rec.inert) rec.el.removeAttribute('inert');
-			if (rec.hidden) rec.el.removeAttribute('aria-hidden');
+			if (rec.hidden) {
+				if (rec.prevHidden === null) { rec.el.removeAttribute('aria-hidden'); }
+				else { rec.el.setAttribute('aria-hidden', rec.prevHidden); }
+			}
 		});
 		inerted = [];
 	}
@@ -254,13 +267,46 @@
 		else if (!event.shiftKey && active === last) { event.preventDefault(); focusEl(first); }
 	});
 
-	// 核心自己開關面板時（加入購物車自動開啟、× 關閉、點外面關閉）同步副作用。
+	/**
+	 * Customizer selective refresh 會把頁首元件整個重繪：新的 trigger 節點帶著伺服器端印的
+	 * aria-expanded="false"，面板若正開著就與實況不符。只看「新增的節點」本身是不是／包不包含 trigger
+	 * （在新增的子樹內查，不掃全頁），是的話去抖後把 aria-expanded 同步回面板實況（唯一真值仍是面板 class）。
+	 */
+	function containsTrigger(node) {
+		if (!node || node.nodeType !== 1) return false;
+		if (typeof node.matches === 'function' && node.matches(TRIGGER_SELECTOR)) return true;
+		return typeof node.querySelector === 'function' && !!node.querySelector(TRIGGER_SELECTOR);
+	}
+
+	function scheduleTriggerSync() {
+		if (triggerSyncTimer) window.clearTimeout(triggerSyncTimer);
+		triggerSyncTimer = window.setTimeout(function () {
+			triggerSyncTimer = 0;
+			setExpanded(isOpen());
+		}, 0);
+	}
+
+	function watchTriggers() {
+		if (!window.MutationObserver || !document.body) return;
+		new MutationObserver(function (mutations) {
+			for (var i = 0; i < mutations.length; i++) {
+				var added = mutations[i].addedNodes;
+				for (var j = 0; j < added.length; j++) {
+					if (containsTrigger(added[j])) { scheduleTriggerSync(); return; }
+				}
+			}
+		}).observe(document.body, { childList: true, subtree: true });
+	}
+
+	// 核心自己開關面板時（加入購物車自動開啟、× 關閉、點外面關閉）同步副作用；
+	// 頁首被 selective refresh 重繪時同步新 trigger 的 aria-expanded。
 	function init() {
 		prepareDialog();
 		var p = panel();
 		if (p && window.MutationObserver) {
 			new MutationObserver(syncState).observe(p, { attributes: true, attributeFilter: ['class'] });
 		}
+		watchTriggers();
 		syncState();
 	}
 	if (document.readyState === 'loading') {

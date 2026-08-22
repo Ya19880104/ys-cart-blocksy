@@ -112,6 +112,28 @@ ysE2E.run(async function () {
   T().dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, ctrlKey: true, button: 0 }));
   await tick();
   A('Ctrl+點擊不攔截（不 preventDefault、面板不開）', ctrlPrevented === false && !isOpen(), String(ctrlPrevented));
+
+  // 9. Customizer selective refresh：面板開著時頁首元件整個重繪 → 新的 trigger 節點帶著伺服器端印的
+  //    aria-expanded="false"，本外掛必須把它同步回面板實況（v1.2.2，R49 Minor）
+  var freshTrigger = '<a href="#ys-e2e-cart-page" class="ys-cart-blocksy-item ys-cart-blocksy-cart" data-ys-cart-blocksy-action="drawer"'
+    + ' aria-haspopup="dialog" aria-expanded="false" aria-controls="ys-ec-mini-cart-panel" aria-label="Cart">'
+    + '<span class="ys-cart-blocksy-cart-icon-wrap">cart <span class="ys-cart-blocksy-cart-badge" data-ys-cart-blocksy-count>3</span></span></a>';
+  T().click(); await tick();
+  A('前置：再開（aria-expanded=true）', isOpen() && T().getAttribute('aria-expanded') === 'true');
+  var oldTrigger = T();
+  hdr.innerHTML = freshTrigger;
+  A('前置：重繪後是全新 trigger 節點、伺服器端印的 aria-expanded=false（同步前）', T() !== oldTrigger && !document.contains(oldTrigger) && T().getAttribute('aria-expanded') === 'false');
+  await tick();
+  A('★ selective refresh 後（面板開著）新 trigger 的 aria-expanded 同步為 true', T().getAttribute('aria-expanded') === 'true', T().getAttribute('aria-expanded'));
+  A('面板仍開著、背景仍 inert、host 開啟 class 仍在', isOpen() && hdr.hasAttribute('inert') && host.classList.contains('ys-cart-blocksy-drawer-host--open'));
+  ysE2E.key(document.activeElement, 'Escape'); await tick();
+  A('關閉後新 trigger aria-expanded=false、焦點回到新 trigger（舊 opener 已不在 document）', !isOpen() && T().getAttribute('aria-expanded') === 'false' && document.activeElement === T(), document.activeElement && (document.activeElement.id || document.activeElement.className));
+  // 面板關著時重繪：新 trigger 維持 false（不會被誤同步成 true）
+  hdr.innerHTML = freshTrigger; await tick();
+  A('面板關著時 selective refresh → 新 trigger 維持 aria-expanded=false', !isOpen() && T().getAttribute('aria-expanded') === 'false');
+  // 無關的 DOM 變動（面板 body 重繪、主內容新增節點）不會把狀態弄錯
+  main.insertAdjacentHTML('beforeend', '<p id="noise">noise</p>'); await tick();
+  A('無關節點新增後狀態不變（aria-expanded 仍 false）', T().getAttribute('aria-expanded') === 'false');
   history.replaceState(null, '', location.pathname);
 });
 </script>

@@ -13,7 +13,8 @@
  *
  * 用法：php tests/run-e2e.php [fixture-name ...]
  *   env `YS_E2E_BLOCKSY_JS=/path/to/other.js`：以別的 JS 取代本外掛 JS（紅證：對 v1.2.0 的 JS 應紅）
- *   env `YS_E2E_KEEP_OUT=1`：保留 `tests/e2e/.out/` 的渲染結果
+ *   env `YS_E2E_KEEP_OUT=1`：保留 `tests/e2e/.out/` 的渲染結果與 Chrome profile（預設每支跑完就刪，`.out/`
+ *     空了也移除目錄——不留 ignored 垃圾）
  */
 
 declare(strict_types=1);
@@ -87,6 +88,14 @@ if ( [] === $fixtures ) { $fail( 'tests/e2e/ 沒有 fixture', 2 ); }
 
 $out_dir = $e2e . '/.out';
 if ( ! is_dir( $out_dir ) && ! mkdir( $out_dir, 0777, true ) && ! is_dir( $out_dir ) ) { $fail( "無法建立 {$out_dir}", 2 ); }
+$keep_out = (bool) getenv( 'YS_E2E_KEEP_OUT' );
+$rm = static function ( string $dir ) use ( &$rm ): void {
+	foreach ( glob( $dir . '/{,.}*', GLOB_BRACE ) ?: [] as $e ) {
+		if ( in_array( basename( $e ), [ '.', '..' ], true ) ) { continue; }
+		is_dir( $e ) && ! is_link( $e ) ? $rm( $e ) : @unlink( $e );
+	}
+	@rmdir( $dir );
+};
 
 $to_url = static fn ( string $path ): string => 'file:///' . ltrim( str_replace( '\\', '/', $path ), '/' );
 $self_url = $to_url( $root );
@@ -121,25 +130,25 @@ foreach ( $fixtures as $fixture ) {
 	echo "== {$name}\n";
 	if ( ! is_array( $decoded ) || empty( $decoded['done'] ) ) {
 		$broken++;
-		echo "  BROKEN  fixture 沒跑完或沒有結果（Chrome 輸出 " . strlen( $dom ) . " bytes）\n";
-		continue;
+		echo "  BROKEN  fixture 沒跑完或沒有結果（Chrome 輸出 " . strlen( $dom ) . " bytes）"
+			. ( $keep_out ? '' : '；要看渲染結果請設 YS_E2E_KEEP_OUT=1 重跑' ) . "\n";
+	} else {
+		foreach ( (array) ( $decoded['results'] ?? [] ) as $r ) {
+			echo '  ' . ( ! empty( $r['ok'] ) ? 'PASS ' : 'FAIL ' ) . ' ' . (string) ( $r['name'] ?? '?' ) . "\n";
+		}
+		$p = (int) ( $decoded['pass'] ?? 0 ); $f = (int) ( $decoded['fail'] ?? 0 );
+		$total_pass += $p; $total_fail += $f;
+		echo "  -> {$p} PASS / {$f} FAIL\n";
 	}
-	foreach ( (array) ( $decoded['results'] ?? [] ) as $r ) {
-		echo '  ' . ( ! empty( $r['ok'] ) ? 'PASS ' : 'FAIL ' ) . ' ' . (string) ( $r['name'] ?? '?' ) . "\n";
-	}
-	$p = (int) ( $decoded['pass'] ?? 0 ); $f = (int) ( $decoded['fail'] ?? 0 );
-	$total_pass += $p; $total_fail += $f;
-	echo "  -> {$p} PASS / {$f} FAIL\n";
-	if ( ! getenv( 'YS_E2E_KEEP_OUT' ) ) {
-		$rm = static function ( string $dir ) use ( &$rm ): void {
-			foreach ( glob( $dir . '/{,.}*', GLOB_BRACE ) ?: [] as $e ) {
-				if ( in_array( basename( $e ), [ '.', '..' ], true ) ) { continue; }
-				is_dir( $e ) && ! is_link( $e ) ? $rm( $e ) : @unlink( $e );
-			}
-			@rmdir( $dir );
-		};
+	// 收尾：未設 YS_E2E_KEEP_OUT 時渲染檔與 Chrome profile 都不留（BROKEN 也一樣；要看結果就設 KEEP_OUT 重跑）。
+	if ( ! $keep_out ) {
 		$rm( $profile );
+		@unlink( $rendered );
 	}
+}
+// .out/ 空了就移除目錄（KEEP_OUT 時保留）。
+if ( ! $keep_out && is_dir( $out_dir ) && [] === array_diff( scandir( $out_dir ) ?: [], [ '.', '..' ] ) ) {
+	@rmdir( $out_dir );
 }
 
 echo "\ne2e: {$total_pass} PASS / {$total_fail} FAIL / {$broken} BROKEN（core={$core}）\n";

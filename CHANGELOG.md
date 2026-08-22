@@ -1,5 +1,35 @@
 # Changelog
 
+## [1.2.2] - 2026-08-23
+
+R49 對 1.2.1 的三個 Minor 收斂；不改行為契約（狀態唯一真值仍是核心面板 `.ys-ec-mini-cart-open`、零複製購物車邏輯、
+add-on 5 原則）、最低核心版本不變（`YS_CART_BLOCKSY_DRAWER_MIN_CORE = '2.58.2'`）。
+
+### Fixed
+
+- **selective refresh 後 `aria-expanded` 暫時 stale**：Customizer selective refresh 會把頁首元件整個重繪
+  （新的 `a.ys-cart-blocksy-cart` 節點、伺服器端印的 `aria-expanded="false"`），面板若正開著，新 trigger 的 aria
+  與實況不符。現在另有一個 `MutationObserver`（`document.body`，`childList + subtree`）只在**新增的節點是／包含
+  trigger** 時（在新增的子樹內查，不對每次 DOM 變動掃全頁）去抖後 `setExpanded(isOpen())`，把 aria 同步回面板實況。
+- **inert 退路沒精確還原原始 `aria-hidden`**：不支援 `inert` 的瀏覽器走 `aria-hidden="true"` 退路，1.2.1 關閉時一律
+  移除屬性，原本 `aria-hidden="false"`（或其他值）的元素就被改掉。現在記錄每個元素原本的值（`null`＝沒有屬性），
+  關閉時精確還原（沒有屬性→移除；有→設回原值）；原本就是 `"true"` 的照舊不動。
+- **e2e runner 留下 ignored `.out/*.html`**：`tests/run-e2e.php` 每支 fixture 的渲染檔跑完沒刪（只刪 Chrome profile）。
+  現在未設 `YS_E2E_KEEP_OUT` 時渲染檔與 profile 都刪（BROKEN 也一樣，要看結果就設 `YS_E2E_KEEP_OUT=1` 重跑），
+  `.out/` 空了也移除目錄。
+
+### 測試
+
+- `tests/e2e/drawer-host-smoke.html` 加 selective refresh 步驟（面板開著時把 `#hdr` 換成全新 trigger → 新 trigger
+  必須同步為 `aria-expanded="true"`，關閉後 `false`；關著時重繪與無關節點新增都不會誤同步）：24 → 31 斷言。
+- 新 fixture `tests/e2e/inert-fallback-smoke.html`：載入本外掛 JS 之前 `delete HTMLElement.prototype.inert`
+  走退路，三個背景元素（沒有 `aria-hidden`／`"false"`／`"true"`）開啟都變 `"true"`（原本 `"true"` 不動）、關閉
+  精確還原，跑兩輪：19 斷言。
+- `tests/regression/v121_mini_cart_drawer.php`：f1 版本門檻 1.2.2；新增 d7（trigger 新增的 MutationObserver 同步）、
+  d8（inert 退路記錄原值）、h3（runner 清 `.out/`）；h2 fixture 清單加新 fixture：25 → 28 斷言。
+- 紅證：`YS_E2E_BLOCKSY_JS=<v1.2.1 的 ys-cart-blocksy.js> php tests/run-e2e.php` → 3 條 ★ 紅（drawer-host-smoke 1、
+  inert-fallback-smoke 2）；`php tests/run.php` 全綠：靜態 25／結構 28／e2e 70。
+
 ## [1.2.1] - 2026-08-22
 
 ### Fixed

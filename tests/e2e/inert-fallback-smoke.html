@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<title>ys-cart-blocksy e2e — inert 退路（不支援 inert 的瀏覽器：aria-hidden 精確還原）</title>
+<link rel="stylesheet" href="{{CORE_URL}}/assets/css/ys-ec-cart.css">
+<link rel="stylesheet" href="{{SELF_URL}}/assets/css/ys-cart-blocksy.css">
+<style>
+  body { font-family: system-ui, sans-serif; margin: 0; }
+  #hdr { padding: 12px 16px; border-bottom: 1px solid #ddd; }
+  #main { padding: 16px; }
+  .bg { padding: 8px 16px; border-bottom: 1px dashed #ddd; font-size: 13px; color: #555; }
+  .pass { color: #15803d; } .fail { color: #dc2626; font-weight: 600; } .row { font-size: 14px; padding: 2px 0; }
+</style>
+<!-- 在本外掛 JS 之前拔掉 inert：'inert' in HTMLElement.prototype 為 false → 本外掛走 aria-hidden 退路 -->
+<script>delete HTMLElement.prototype.inert;</script>
+</head>
+<body>
+<header id="hdr">
+  <a href="#ys-e2e-cart-page" class="ys-cart-blocksy-item ys-cart-blocksy-cart" data-ys-cart-blocksy-action="drawer"
+     aria-haspopup="dialog" aria-expanded="false" aria-controls="ys-ec-mini-cart-panel" aria-label="Cart">cart</a>
+</header>
+<!-- 三個背景元素（drawer host 的兄弟節點）：沒有 aria-hidden／aria-hidden="false"／aria-hidden="true" -->
+<div id="bg-none" class="bg">背景 A：沒有 aria-hidden</div>
+<div id="bg-false" class="bg" aria-hidden="false">背景 B：aria-hidden="false"</div>
+<div id="bg-true" class="bg" aria-hidden="true">背景 C：aria-hidden="true"（別人藏的，不動）</div>
+<main id="main">
+  <div id="result">執行中…</div>
+</main>
+<div class="ys-cart-blocksy-drawer-host" data-ys-cart-blocksy-drawer-host>
+  <div class="ys-cart-blocksy-drawer-backdrop" data-ys-cart-blocksy-drawer-backdrop aria-hidden="true"></div>
+  {{MINI_CART_HTML}}
+</div>
+<script id="ys-e2e-results" type="application/json"></script>
+<script src="{{SELF_URL}}/tests/e2e/support/e2e.js"></script>
+<script src="{{CORE_URL}}/assets/js/ys-ec-cart.js"></script>
+<script src="{{BLOCKSY_JS_URL}}"></script>
+<script>
+ysE2E.run(async function () {
+  var A = ysE2E.assert, tick = ysE2E.tick;
+  var T = function () { return document.querySelector('a.ys-cart-blocksy-cart'); };
+  var P = function () { return document.getElementById('ys-ec-mini-cart-panel'); };
+  var isOpen = function () { return P().classList.contains('ys-ec-mini-cart-open'); };
+  var hdr = document.getElementById('hdr'), main = document.getElementById('main');
+  var host = document.querySelector('[data-ys-cart-blocksy-drawer-host]');
+  var bgNone = document.getElementById('bg-none'), bgFalse = document.getElementById('bg-false'), bgTrue = document.getElementById('bg-true');
+  var ah = function (el) { return el.getAttribute('aria-hidden'); };
+  var closeBtn = document.getElementById('ys-ec-mini-cart-close');
+
+  A('前置：inert 已從 HTMLElement.prototype 拔掉（本外掛走 aria-hidden 退路）', !('inert' in HTMLElement.prototype));
+  A('前置：本外掛 JS 已載入、面板是 modal（aria-modal=true）', !!(window.YsCartBlocksy && window.YsCartBlocksy.miniCart) && P().getAttribute('aria-modal') === 'true');
+  A('前置：三個背景元素初始 aria-hidden＝無／false／true', ah(bgNone) === null && ah(bgFalse) === 'false' && ah(bgTrue) === 'true');
+
+  // 兩輪：第二輪確認原值是每次開啟時重新記錄（不是沿用第一輪的紀錄）
+  for (var round = 1; round <= 2; round++) {
+    T().focus(); T().click(); await tick();
+    A('第 ' + round + ' 輪：點頁首 icon → 面板開啟、焦點進面板', isOpen() && document.activeElement === closeBtn);
+    A('第 ' + round + ' 輪：退路不用 inert 屬性（背景元素都沒有 inert）', !hdr.hasAttribute('inert') && !main.hasAttribute('inert') && !bgNone.hasAttribute('inert') && !bgFalse.hasAttribute('inert'));
+    A('第 ' + round + ' 輪：開啟 → 沒有 aria-hidden 的與 aria-hidden=false 的都變 true；原本 true 的不動', ah(bgNone) === 'true' && ah(bgFalse) === 'true' && ah(bgTrue) === 'true' && ah(hdr) === 'true' && ah(main) === 'true', [ah(bgNone), ah(bgFalse), ah(bgTrue)].join('/'));
+    A('第 ' + round + ' 輪：drawer host 本身不被藏', !host.hasAttribute('aria-hidden'));
+    ysE2E.key(document.activeElement, 'Escape'); await tick();
+    A('第 ' + round + ' 輪：Esc 關閉、焦點回 opener', !isOpen() && document.activeElement === T());
+    A('第 ' + round + ' 輪：關閉 → 原本沒有 aria-hidden 的：屬性移除', !bgNone.hasAttribute('aria-hidden') && !hdr.hasAttribute('aria-hidden') && !main.hasAttribute('aria-hidden'), String(ah(bgNone)));
+    A('★ 第 ' + round + ' 輪：關閉 → 原本 aria-hidden=false 的：精確還原為 false（1.2.1 一律移除屬性）', ah(bgFalse) === 'false', String(ah(bgFalse)));
+    A('第 ' + round + ' 輪：關閉 → 原本 aria-hidden=true 的：仍是 true', ah(bgTrue) === 'true', String(ah(bgTrue)));
+  }
+  history.replaceState(null, '', location.pathname);
+});
+</script>
+</body>
+</html>

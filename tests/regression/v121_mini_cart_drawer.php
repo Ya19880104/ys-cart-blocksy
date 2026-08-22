@@ -12,11 +12,12 @@
  *       同一份樣板輸出迷你購物車（零複製購物車邏輯）；核心浮動購物車開著時什麼都不輸出（避免雙 ID）；
  *       JS／CSS 相依核心 handle
  *   (d) JS：可顯示性守門（computed display）、bubble phase＋延後開關、不 stopPropagation、修飾鍵放行、
- *       dialog 屬性、inert、Tab 焦點圈、Esc、MutationObserver 同步；無 fetch／XHR
+ *       dialog 屬性、inert、Tab 焦點圈、Esc、MutationObserver 同步；無 fetch／XHR；
+ *       v1.2.2：新增 trigger（selective refresh 重繪）的 MutationObserver 同步、inert 退路記錄原值精確還原
  *   (e) CSS：抽屜 override、浮動面板開啟瞬間 visibility 0s、面板 focus 無外框；不改核心 class 名
- *   (f) 版本兩處同步且 >= 1.2.1；5 原則不變
+ *   (f) 版本兩處同步且 >= 1.2.2；5 原則不變
  *   (g) 最低核心版本：主檔常數＝README＝CHANGELOG 引用；detector／view 都用常數；Requires Plugins: ys-cart
- *   (h) 測試在 repo：.gitignore 不忽略 tests/；統一 runner 與三支 e2e fixture 存在
+ *   (h) 測試在 repo：.gitignore 不忽略 tests/；統一 runner 與四支 e2e fixture 存在；e2e runner 跑完清 .out/
  */
 
 $root = dirname( __DIR__, 2 );
@@ -42,9 +43,10 @@ $main      = $read( 'ys-cart-blocksy.php' );
 $readme    = $read( 'README.md' );
 $changelog = $read( 'CHANGELOG.md' );
 $gitignore = $read( '.gitignore' );
+$runner    = $read( 'tests/run-e2e.php' );
 $js_code   = $code_lines( $js );
 
-echo "-- v1.2.1 mini cart drawer (structure) --\n";
+echo "-- v1.2.x mini cart drawer (structure) --\n";
 
 $check( 'a1：options 有 ys_cart_click_action（ct-radio，drawer／link，預設 drawer）',
 	str_contains( $options, "'ys_cart_click_action' => [" )
@@ -117,6 +119,19 @@ $check( 'd6：JS 焦點進面板／回 opener，狀態以 MutationObserver 同�
 		&& str_contains( $js_code, 'new MutationObserver(syncState)' )
 		&& str_contains( $js_code, "var OPEN_CLASS = 'ys-ec-mini-cart-open';" )
 		&& ! str_contains( $js_code, 'fetch(' ) && ! str_contains( $js_code, 'XMLHttpRequest' ) );
+$check( 'd7：JS 以 MutationObserver（document.body，childList＋subtree）偵測新增的 trigger（selective refresh 重繪），去抖後 setExpanded(isOpen())；只在新增子樹含 trigger 時才同步',
+	str_contains( $js_code, '.observe(document.body, { childList: true, subtree: true })' )
+		&& str_contains( $js_code, 'addedNodes' )
+		&& str_contains( $js_code, 'function containsTrigger(' )
+		&& str_contains( $js_code, 'node.querySelector(TRIGGER_SELECTOR)' )
+		&& str_contains( $js_code, 'window.clearTimeout(triggerSyncTimer)' )
+		&& str_contains( $js_code, 'setExpanded(isOpen())' ) );
+$check( 'd8：JS inert 退路記錄每個元素原本的 aria-hidden（null＝沒有屬性），關閉時精確還原（沒有→移除；有→設回原值）；原本 true 的不動',
+	str_contains( $js_code, "var prev = sib.getAttribute('aria-hidden');" )
+		&& str_contains( $js_code, "if (prev === 'true') return;" )
+		&& str_contains( $js_code, 'rec.prevHidden = prev;' )
+		&& str_contains( $js_code, "if (rec.prevHidden === null) { rec.el.removeAttribute('aria-hidden'); }" )
+		&& str_contains( $js_code, "else { rec.el.setAttribute('aria-hidden', rec.prevHidden); }" ) );
 
 $check( 'e1：CSS 隱藏核心浮動按鈕、面板貼右滿高、遮罩；不改核心 class 名',
 	str_contains( $css, '.ys-cart-blocksy-drawer-host .ys-ec-mini-cart-toggle {' )
@@ -130,7 +145,7 @@ $check( 'e2：CSS 浮動面板開啟瞬間 visibility 0s（只在頁上有 drawe
 
 preg_match( '/^\s*\*\s*Version:\s*([0-9.]+)/m', $main, $v1 );
 preg_match( "/define\( 'YS_CART_BLOCKSY_VERSION', '([0-9.]+)' \)/", $main, $v2 );
-$check( 'f1：版本兩處同步且 >= 1.2.1', ( $v1[1] ?? '' ) === ( $v2[1] ?? '' ) && version_compare( $v1[1] ?? '0', '1.2.1', '>=' ), ( $v1[1] ?? '?' ) . '/' . ( $v2[1] ?? '?' ) );
+$check( 'f1：版本兩處同步且 >= 1.2.2', ( $v1[1] ?? '' ) === ( $v2[1] ?? '' ) && version_compare( $v1[1] ?? '0', '1.2.2', '>=' ), ( $v1[1] ?? '?' ) . '/' . ( $v2[1] ?? '?' ) );
 $plugin_code = $code_lines( $plugin );
 $check( 'f2：5 原則不變：無 add_menu_page／register_rest_route／wp_ajax／admin-ajax／dbDelta（只掃程式碼行）',
 	! str_contains( $plugin_code, 'add_menu_page' ) && ! str_contains( $plugin_code, 'register_rest_route' )
@@ -153,12 +168,18 @@ $check( 'g2：detector core_supports_mini_cart_drawer() 以常數比對核心 YS
 
 $check( 'h1：.gitignore 不再忽略 tests/（乾淨 clone 可重跑）',
 	'' !== $gitignore && 1 !== preg_match( '#^/?tests/?\s*$#m', $gitignore ) );
-$check( 'h2：統一 runner 與 e2e runner／三支 fixture 在 repo',
+$check( 'h2：統一 runner 與 e2e runner／四支 fixture 在 repo',
 	is_file( $root . '/tests/run.php' ) && is_file( $root . '/tests/run-e2e.php' )
 		&& is_file( $root . '/tests/e2e/drawer-host-smoke.html' )
 		&& is_file( $root . '/tests/e2e/drawer-checkout-smoke.html' )
 		&& is_file( $root . '/tests/e2e/floating-mode-smoke.html' )
+		&& is_file( $root . '/tests/e2e/inert-fallback-smoke.html' )
 		&& str_contains( $read( 'tests/run.php' ), 'run-e2e.php' ) );
+$check( 'h3：e2e runner 未設 YS_E2E_KEEP_OUT 時刪掉渲染檔與 Chrome profile，.out/ 空了就移除目錄（不留 ignored 垃圾）',
+	str_contains( $runner, "getenv( 'YS_E2E_KEEP_OUT' )" )
+		&& str_contains( $runner, '@unlink( $rendered );' )
+		&& str_contains( $runner, '$rm( $profile );' )
+		&& str_contains( $runner, 'rmdir( $out_dir )' ) );
 
-echo "\nv1.2.1 mini cart drawer (structure): {$pass} PASS / {$fail} FAIL\n";
+echo "\nv1.2.x mini cart drawer (structure): {$pass} PASS / {$fail} FAIL\n";
 exit( $fail > 0 || 0 === $pass ? 1 : 0 );
