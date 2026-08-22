@@ -11,6 +11,10 @@
  * 刻意不做的事：無後台頁、無 REST namespace、無 admin-ajax、無資料表 ——
  * 所有元件設定都在「外觀 → 自訂 → 頁首」走 Blocksy 原生選項系統。
  *
+ * v1.2.0：購物車元件可在頁首直接開啟**核心的**迷你購物車（drawer）。核心右下角浮動購物車
+ * 關閉時，本外掛在 wp_footer 以核心同一份樣板輸出迷你購物車（同一套 ID／JS／REST），
+ * 只換成右側抽屜的樣式——功能與核心浮動購物車完全相同，不複製任何購物車邏輯。
+ *
  * @package YangSheep\CartBlocksy
  */
 
@@ -33,6 +37,8 @@ final class YSCartBlocksyPlugin {
 		add_filter( 'blocksy:header:items-paths', [ self::class, 'register_item_paths' ] );
 
 		add_action( 'wp_enqueue_scripts', [ self::class, 'enqueue_front_assets' ] );
+		// 20：在核心 YSMiniCart（wp_footer 預設 10）之後，才知道核心有沒有自己輸出迷你購物車。
+		add_action( 'wp_footer', [ self::class, 'maybe_render_mini_cart_drawer' ], 20 );
 		add_action( 'admin_notices', [ self::class, 'maybe_render_dependency_notice' ] );
 		add_action( 'init', [ self::class, 'load_textdomain' ] );
 	}
@@ -65,6 +71,69 @@ final class YSCartBlocksyPlugin {
 			[],
 			YS_CART_BLOCKSY_VERSION
 		);
+
+		// v1.2.0：頁首購物車 → 迷你購物車 drawer 的開關（委派點擊，不複製核心購物車邏輯；
+		// 核心 ys-ec-cart.js 仍負責 body 重繪、移除、badge、加入購物車自動開啟）。
+		wp_enqueue_script(
+			'ys-cart-blocksy',
+			YS_CART_BLOCKSY_URL . 'assets/js/ys-cart-blocksy.js',
+			wp_script_is( 'ys-ec-cart', 'registered' ) ? [ 'ys-ec-cart' ] : [],
+			YS_CART_BLOCKSY_VERSION,
+			true
+		);
+	}
+
+	/** 本次請求是否有「drawer 模式」的頁首購物車元件被渲染（由 view.php 宣告）。 */
+	private static bool $drawer_requested = false;
+
+	public static function request_mini_cart_drawer(): void {
+		self::$drawer_requested = true;
+	}
+
+	/** 給契約／診斷用的唯讀旗標。 */
+	public static function mini_cart_drawer_requested(): bool {
+		return self::$drawer_requested;
+	}
+
+	/**
+	 * 核心右下角浮動購物車關閉時，用核心同一份樣板在頁尾輸出迷你購物車（抽屜樣式）。
+	 *
+	 * 核心浮動購物車開著＝核心已輸出 #ys-ec-mini-cart，這裡什麼都不做（頁首 icon 直接開它）；
+	 * 同一頁兩份同 ID 的迷你購物車會讓核心 JS 綁錯。
+	 */
+	public static function maybe_render_mini_cart_drawer(): void {
+		if ( ! self::$drawer_requested || is_admin() || ! YSBlocksyDetector::ready() ) {
+			return;
+		}
+		if ( ! class_exists( '\YangSheep\Ecommerce\YSEcommerce' )
+			|| ! class_exists( '\YangSheep\Ecommerce\Handlers\YSCartHandler' )
+			|| ! class_exists( '\YangSheep\Ecommerce\Services\Setup\YSPageResolver' )
+			|| ! defined( 'YS_ECOMMERCE_PATH' ) ) {
+			return;
+		}
+		if ( \YangSheep\Ecommerce\YSEcommerce::get_instance()->is_feature_enabled( 'floating_cart' ) ) {
+			return; // 核心自己有輸出，頁首 icon 直接開核心的面板。
+		}
+		if ( ! (bool) apply_filters( 'ys_ec_render_standard_chrome', true, [ 'piece' => 'mini_cart' ] ) ) {
+			return; // 與核心同一個 opt-out 契約（affiliate landing 等）。
+		}
+
+		$template_path = YS_ECOMMERCE_PATH . 'templates/cart/mini-cart.php';
+		if ( ! file_exists( $template_path ) ) {
+			return;
+		}
+
+		$cart_handler = \YangSheep\Ecommerce\Handlers\YSCartHandler::get_instance();
+		$cart         = $cart_handler->get_cart();
+		$items        = $cart['items'] ?? [];
+		$totals       = $cart['totals'] ?? [];
+		$checkout_url = esc_url( \YangSheep\Ecommerce\Services\Setup\YSPageResolver::url( 'checkout', 'checkout/' ) );
+		$cart_url     = esc_url( \YangSheep\Ecommerce\Services\Setup\YSPageResolver::url( 'cart', 'cart/' ) );
+
+		echo '<div class="ys-cart-blocksy-drawer-host" data-ys-cart-blocksy-drawer-host>';
+		echo '<div class="ys-cart-blocksy-drawer-backdrop" data-ys-cart-blocksy-drawer-backdrop aria-hidden="true"></div>';
+		include $template_path;
+		echo '</div>';
 	}
 
 	/**

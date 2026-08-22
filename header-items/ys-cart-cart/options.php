@@ -21,6 +21,21 @@ $options = [
 				'responsive' => true,
 			],
 
+			// v1.2.0：點擊行為。drawer＝在頁首直接開啟核心的迷你購物車（與核心右下角浮動購物車
+			// 功能相同：品項／數量／移除／小計／促銷提示／前往結帳），可搭配核心「右下角浮動購物車」
+			// 關閉使用；link＝前往購物車頁（v1.1.x 的行為）。
+			'ys_cart_click_action' => [
+				'label'   => __( 'Click action', 'ys-cart-blocksy' ),
+				'type'    => 'ct-radio',
+				'value'   => 'drawer',
+				'view'    => 'text',
+				'design'  => 'block',
+				'choices' => [
+					'drawer' => __( 'Open mini cart drawer', 'ys-cart-blocksy' ),
+					'link'   => __( 'Go to cart page', 'ys-cart-blocksy' ),
+				],
+			],
+
 			'ys_cart_show_badge' => [
 				'label' => __( 'Show count badge', 'ys-cart-blocksy' ),
 				'type'  => 'ct-switch',

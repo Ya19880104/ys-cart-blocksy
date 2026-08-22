@@ -253,3 +253,72 @@ a.ys-cart-blocksy-cart:hover {
 		width: min(280px, 60vw);
 	}
 }
+
+/* ─── 購物車：迷你購物車 drawer（v1.2.0） ───
+   核心右下角浮動購物車關閉時，本外掛在頁尾以核心同一份樣板輸出 #ys-ec-mini-cart；
+   這裡只把它從「右下角浮動按鈕＋小面板」改成「右側抽屜」：隱藏浮動按鈕、面板貼右滿高、
+   加背景遮罩。開關仍是核心的 .ys-ec-mini-cart-open。 */
+.ys-cart-blocksy-drawer-host .ys-ec-mini-cart {
+	position: fixed;
+	inset: 0 0 0 auto;
+	bottom: auto;
+	right: 0;
+	top: 0;
+	height: 100dvh;
+	width: 0;
+	z-index: 100000;
+	pointer-events: none;
+}
+
+.ys-cart-blocksy-drawer-host .ys-ec-mini-cart-toggle {
+	display: none !important;
+}
+
+.ys-cart-blocksy-drawer-host .ys-ec-mini-cart-panel {
+	position: fixed;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	width: min(380px, 100vw);
+	max-height: none;
+	height: 100dvh;
+	border-radius: 0;
+	border-width: 0 0 0 1px;
+	transform: translateX(100%);
+	opacity: 1;
+	visibility: hidden;
+	transition: transform 0.25s ease, visibility 0s linear 0.25s;
+	pointer-events: auto;
+}
+
+.ys-cart-blocksy-drawer-host .ys-ec-mini-cart-panel.ys-ec-mini-cart-open {
+	transform: translateX(0);
+	visibility: visible;
+	transition: transform 0.25s ease, visibility 0s;
+}
+
+.ys-cart-blocksy-drawer-host .ys-ec-mini-cart-body {
+	flex: 1 1 auto;
+	overflow-y: auto;
+}
+
+.ys-cart-blocksy-drawer-backdrop {
+	position: fixed;
+	inset: 0;
+	background: rgba(0, 0, 0, 0.35);
+	opacity: 0;
+	visibility: hidden;
+	transition: opacity 0.25s ease, visibility 0s linear 0.25s;
+	z-index: 99999;
+}
+
+.ys-cart-blocksy-drawer-host--open .ys-cart-blocksy-drawer-backdrop {
+	opacity: 1;
+	visibility: visible;
+	transition: opacity 0.25s ease, visibility 0s;
+}
+
+/* 頁首 icon 本身：drawer 模式時滑鼠樣式維持可點 */
+a.ys-cart-blocksy-cart[data-ys-cart-blocksy-action="drawer"] {
+	cursor: pointer;
+}
