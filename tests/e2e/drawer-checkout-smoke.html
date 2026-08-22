@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<title>ys-cart-blocksy e2e — 結帳頁（核心 CSS 隱藏迷你購物車）</title>
+<link rel="stylesheet" href="{{CORE_URL}}/assets/css/ys-ec-cart.css">
+<link rel="stylesheet" href="{{CORE_URL}}/assets/css/ys-ec-checkout.css">
+<link rel="stylesheet" href="{{SELF_URL}}/assets/css/ys-cart-blocksy.css">
+<style>
+  body { font-family: system-ui, sans-serif; margin: 0; }
+  #hdr { padding: 12px 16px; border-bottom: 1px solid #ddd; }
+  .pass { color: #15803d; } .fail { color: #dc2626; font-weight: 600; } .row { font-size: 14px; padding: 2px 0; }
+</style>
+</head>
+<body class="ys-ec-checkout-page">
+<header id="hdr">
+  <a href="#ys-e2e-cart-page" class="ys-cart-blocksy-item ys-cart-blocksy-cart" data-ys-cart-blocksy-action="drawer"
+     aria-haspopup="dialog" aria-expanded="false" aria-controls="ys-ec-mini-cart-panel" aria-label="Cart">cart</a>
+</header>
+<main id="main">
+  <div class="ys-ec-checkout-wrapper"><button type="button" id="submit">送出訂單</button></div>
+  <div id="result">執行中…</div>
+</main>
+<div class="ys-cart-blocksy-drawer-host" data-ys-cart-blocksy-drawer-host>
+  <div class="ys-cart-blocksy-drawer-backdrop" data-ys-cart-blocksy-drawer-backdrop aria-hidden="true"></div>
+  {{MINI_CART_HTML}}
+</div>
+<script id="ys-e2e-results" type="application/json"></script>
+<script src="{{SELF_URL}}/tests/e2e/support/e2e.js"></script>
+<script src="{{CORE_URL}}/assets/js/ys-ec-cart.js"></script>
+<script src="{{BLOCKSY_JS_URL}}"></script>
+<script>
+ysE2E.run(async function () {
+  var A = ysE2E.assert, tick = ysE2E.tick;
+  var T = function () { return document.querySelector('a.ys-cart-blocksy-cart'); };
+  var P = function () { return document.getElementById('ys-ec-mini-cart-panel'); };
+  var isOpen = function () { return P().classList.contains('ys-ec-mini-cart-open'); };
+  var hdr = document.getElementById('hdr');
+  var prevented = null;
+  window.addEventListener('click', function (e) { if (e.target.closest && e.target.closest('a.ys-cart-blocksy-cart')) prevented = e.defaultPrevented; });
+
+  A('前置：核心結帳 CSS 把 #ys-ec-mini-cart 藏起來（computed display=none）', getComputedStyle(document.getElementById('ys-ec-mini-cart')).display === 'none');
+  A('本外掛判定面板不可用（YsCartBlocksy.miniCart.available()=false）', !!(window.YsCartBlocksy && window.YsCartBlocksy.miniCart && window.YsCartBlocksy.miniCart.available) && window.YsCartBlocksy.miniCart.available() === false);
+
+  history.replaceState(null, '', location.pathname);
+  T().focus();
+  T().click();
+  await tick();
+  A('★ 結帳頁點頁首 icon：不 preventDefault（走 href 前往購物車頁）', prevented === false, String(prevented));
+  A('★ href 照常：hash 導向發生', location.hash === '#ys-e2e-cart-page', location.hash);
+  A('★ 面板沒有被打開（不會開一個看不見的面板）', !isOpen() && T().getAttribute('aria-expanded') === 'false');
+  A('背景沒有被 inert', !hdr.hasAttribute('inert'));
+  A('焦點沒被搬進隱藏面板', document.activeElement !== document.getElementById('ys-ec-mini-cart-close'));
+
+  // 核心在結帳頁自動開啟（理論上不會發生，但若發生）：只同步 aria，不鎖背景、不搬焦點
+  var submit = document.getElementById('submit'); submit.focus();
+  document.dispatchEvent(new CustomEvent('ys_ec_cart_updated', { detail: { cart_count: 1 } }));
+  await tick();
+  A('核心在隱藏面板的頁面自動開啟：不鎖背景、焦點不動', !hdr.hasAttribute('inert') && document.activeElement === submit);
+  history.replaceState(null, '', location.pathname);
+});
+</script>
+</body>
+</html>

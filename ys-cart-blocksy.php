@@ -3,13 +3,14 @@
  * Plugin Name: YS CART Blocksy 整合
  * Plugin URI: https://yangsheep.com.tw
  * Description: 在 Blocksy 佈景主題的頁首建構器（外觀 → 自訂 → 頁首）提供 YS CART 元件：帳號（含核心下拉）、搜尋 Icon、搜尋框，以及進階搜尋元件；尺寸顏色可調。
- * Version: 1.2.0
+ * Version: 1.2.1
  * Author: YANGSHEEP DESIGN
  * Author URI: https://yangsheep.com.tw
  * Text Domain: ys-cart-blocksy
  * Domain Path: /languages
  * Requires at least: 6.0
  * Requires PHP: 8.1
+ * Requires Plugins: ys-cart
  * License: GPL v2 or later
  *
  * @package YangSheep\CartBlocksy
@@ -17,7 +18,11 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'YS_CART_BLOCKSY_VERSION', '1.2.0' );
+define( 'YS_CART_BLOCKSY_VERSION', '1.2.1' );
+// 迷你購物車 drawer 需要的最低核心版本（唯一宣告處；README／CHANGELOG 引用同一個數字）：
+// 2.58.2 起核心才會在購物車變空／頁上無迷你購物車 body 時同步所有數量 badge。舊核心的購物車
+// 元件自動退回「前往購物車頁」（YSBlocksyDetector::core_supports_mini_cart_drawer()）。
+define( 'YS_CART_BLOCKSY_DRAWER_MIN_CORE', '2.58.2' );
 define( 'YS_CART_BLOCKSY_FILE', __FILE__ );
 define( 'YS_CART_BLOCKSY_PATH', plugin_dir_path( __FILE__ ) );
 define( 'YS_CART_BLOCKSY_URL', plugin_dir_url( __FILE__ ) );

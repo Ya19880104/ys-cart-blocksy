@@ -25,7 +25,11 @@ $ys_show_label = 'yes' === (string) blocksy_akg( 'ys_cart_show_label', $atts, 'n
 $ys_label      = (string) blocksy_akg( 'ys_cart_label', $atts, __( 'Cart', 'ys-cart-blocksy' ) );
 // v1.2.0：點擊行為（drawer＝開啟核心迷你購物車；link＝前往購物車頁）。href 永遠保留購物車頁當
 // no-JS／drawer 不存在時的退路。
+// v1.2.1：核心低於 YS_CART_BLOCKSY_DRAWER_MIN_CORE 時強制 link（不宣告做不到的相依）。
 $ys_action = 'link' === (string) blocksy_akg( 'ys_cart_click_action', $atts, 'drawer' ) ? 'link' : 'drawer';
+if ( 'drawer' === $ys_action && ! \YangSheep\CartBlocksy\YSBlocksyDetector::core_supports_mini_cart_drawer() ) {
+	$ys_action = 'link';
+}
 if ( 'drawer' === $ys_action && class_exists( '\YangSheep\CartBlocksy\YSCartBlocksyPlugin' ) ) {
 	\YangSheep\CartBlocksy\YSCartBlocksyPlugin::request_mini_cart_drawer();
 }

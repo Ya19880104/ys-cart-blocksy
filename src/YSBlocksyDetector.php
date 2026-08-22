@@ -34,6 +34,16 @@ final class YSBlocksyDetector {
 	}
 
 	/**
+	 * 核心版本是否足以承接迷你購物車 drawer（YS_CART_BLOCKSY_DRAWER_MIN_CORE）。
+	 * 不足時購物車元件退回「前往購物車頁」，不宣告做不到的相依。
+	 */
+	public static function core_supports_mini_cart_drawer(): bool {
+		return defined( 'YS_ECOMMERCE_VERSION' )
+			&& defined( 'YS_CART_BLOCKSY_DRAWER_MIN_CORE' )
+			&& version_compare( (string) YS_ECOMMERCE_VERSION, (string) YS_CART_BLOCKSY_DRAWER_MIN_CORE, '>=' );
+	}
+
+	/**
 	 * 核心「商品即時搜尋」功能是否啟用（搜尋 icon 的 overlay / live 結果都靠它）。
 	 */
 	public static function ajax_search_enabled(): bool {

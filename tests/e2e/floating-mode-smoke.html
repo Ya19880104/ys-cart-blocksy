@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<title>ys-cart-blocksy e2e — 核心右下角浮動購物車開著（非 modal popover）</title>
+<link rel="stylesheet" href="{{CORE_URL}}/assets/css/ys-ec-cart.css">
+<link rel="stylesheet" href="{{SELF_URL}}/assets/css/ys-cart-blocksy.css">
+<style>
+  body { font-family: system-ui, sans-serif; margin: 0; }
+  #hdr { padding: 12px 16px; border-bottom: 1px solid #ddd; }
+  #main { padding: 16px; }
+  .pass { color: #15803d; } .fail { color: #dc2626; font-weight: 600; } .row { font-size: 14px; padding: 2px 0; }
+</style>
+</head>
+<body>
+<header id="hdr">
+  <a href="#ys-e2e-cart-page" class="ys-cart-blocksy-item ys-cart-blocksy-cart" data-ys-cart-blocksy-action="drawer"
+     aria-haspopup="dialog" aria-expanded="false" aria-controls="ys-ec-mini-cart-panel" aria-label="Cart">cart</a>
+</header>
+<main id="main">
+  <button type="button" id="add">加入購物車</button>
+  <div id="result">執行中…</div>
+</main>
+<!-- 核心浮動購物車開著：核心 YSMiniCart 在 wp_footer 直接輸出，沒有 drawer host／遮罩 -->
+{{MINI_CART_HTML}}
+<script id="ys-e2e-results" type="application/json"></script>
+<script src="{{SELF_URL}}/tests/e2e/support/e2e.js"></script>
+<script src="{{CORE_URL}}/assets/js/ys-ec-cart.js"></script>
+<script src="{{BLOCKSY_JS_URL}}"></script>
+<script>
+ysE2E.run(async function () {
+  var A = ysE2E.assert, tick = ysE2E.tick;
+  var T = function () { return document.querySelector('a.ys-cart-blocksy-cart'); };
+  var P = function () { return document.getElementById('ys-ec-mini-cart-panel'); };
+  var isOpen = function () { return P().classList.contains('ys-ec-mini-cart-open'); };
+  var hdr = document.getElementById('hdr'), main = document.getElementById('main');
+  var closeBtn = document.getElementById('ys-ec-mini-cart-close');
+  var toggle = document.getElementById('ys-ec-mini-cart-toggle');
+
+  A('前置：沒有 drawer host（核心浮動模式）', !document.querySelector('[data-ys-cart-blocksy-drawer-host]'));
+  A('★ 面板 role=dialog＋aria-labelledby，但**不是** modal（沒有 aria-modal）', P().getAttribute('role') === 'dialog' && !!P().getAttribute('aria-labelledby') && !P().hasAttribute('aria-modal'));
+
+  // 1. 頁首 icon 開
+  T().focus(); T().click(); await tick(120);
+  A('★ 點頁首 icon → 核心面板開啟', isOpen() && T().getAttribute('aria-expanded') === 'true');
+  A('焦點進面板（× 關閉鈕）', document.activeElement === closeBtn);
+  A('★ 非 modal：背景不 inert', !hdr.hasAttribute('inert') && !main.hasAttribute('inert'));
+  var evTab = ysE2E.key(closeBtn, 'Tab');
+  A('非 modal：不攔 Tab（不做焦點圈）', !evTab.defaultPrevented);
+
+  // 2. Esc 關 → 焦點回 icon
+  ysE2E.key(closeBtn, 'Escape'); await tick();
+  A('★ Esc 關閉，焦點回到頁首 icon（1.2.0 停在已隱藏的 × 上）', !isOpen() && document.activeElement === T(), document.activeElement && (document.activeElement.id || document.activeElement.className));
+
+  // 3. toggle：開著時再點 icon → 關（核心 outside-click 會先關，我們不得再開回來）
+  T().click(); await tick();
+  A('前置：再開', isOpen());
+  T().click(); await tick(); await tick();
+  A('★ 開著時再點 icon → 關（不會被核心 outside-click 與本外掛 toggle 打架成再開）', !isOpen() && T().getAttribute('aria-expanded') === 'false');
+
+  // 4. 點面板外 → 核心關；本外掛同步 aria、焦點回 opener
+  T().click(); await tick();
+  main.click(); await tick();
+  A('點面板外（核心 outside-click）→ aria-expanded=false、焦點回 opener', !isOpen() && T().getAttribute('aria-expanded') === 'false' && document.activeElement === T());
+
+  // 5. 核心自己的浮動按鈕開關：opener＝當時焦點元素（toggle），關閉後焦點回它
+  toggle.focus(); toggle.click(); await tick(120);
+  A('核心浮動按鈕開 → aria-expanded 同步、焦點進面板', isOpen() && T().getAttribute('aria-expanded') === 'true' && document.activeElement === closeBtn);
+  toggle.click(); await tick();
+  A('核心浮動按鈕關 → 焦點回浮動按鈕', !isOpen() && document.activeElement === toggle, document.activeElement && document.activeElement.id);
+  history.replaceState(null, '', location.pathname);
+});
+</script>
+</body>
+</html>

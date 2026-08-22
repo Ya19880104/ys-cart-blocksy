@@ -1,5 +1,40 @@
 # Changelog
 
+## [1.2.1] - 2026-08-22
+
+### Fixed
+
+- **結帳頁點頁首購物車沒反應**（R48 #2）：核心在結帳頁以 CSS `display:none !important` 隱藏迷你購物車，
+  1.2.0 只檢查面板存在就 `preventDefault()`，於是開了一個看不見的面板。現在只在面板「真的能顯示」
+  （`#ys-ec-mini-cart` 與面板的 computed `display` 都不是 `none`）時才攔截；否則不攔截，`<a href>` 照常
+  前往購物車頁。修飾鍵／非左鍵點擊也交給瀏覽器（新分頁開購物車頁）。
+- **dialog 契約**（R48 #3）：trigger 宣告 `aria-haspopup="dialog"`，但核心面板沒有 dialog 語意、關閉也不還焦點。
+  現在由本外掛 JS 在面板缺少時補上 `role="dialog"`、`aria-labelledby`（核心樣板標題 `#ys-ec-mini-cart-title`）、
+  `tabindex="-1"`；開啟時焦點進面板（第一個可聚焦元素）、關閉時焦點回到開啟它的元素（核心加入購物車
+  自動開啟時＝當時的焦點元素，通常是加入購物車按鈕）。本外掛自己輸出的抽屜是 **modal**：`aria-modal="true"`、
+  背景 `inert`（不支援 `inert` 的瀏覽器退 `aria-hidden`）、Tab／Shift+Tab 在面板內循環；核心右下角浮動面板
+  是非 modal popover，只做 role／名稱／焦點進出，不鎖背景。開／關的副作用一律由面板 `.ys-ec-mini-cart-open`
+  的 MutationObserver 同步，核心自己開關（自動開啟、× 關閉、點外面關閉）也一致。
+
+### Changed
+
+- 點擊改在 bubble phase、不再 `stopPropagation()`（佈景／analytics 的 document 監聽照常收到）；開關延後到事件
+  派送結束（`setTimeout 0`），核心「點面板外就關閉」的監聽不會把剛開的面板又關掉；開／關依據在 capture phase
+  先讀。
+- 最低核心版本只宣告一處：`YS_CART_BLOCKSY_DRAWER_MIN_CORE = '2.58.2'`（主檔），README／CHANGELOG 引用同一個數字；
+  核心低於它時購物車元件自動退回「前往購物車頁」（`YSBlocksyDetector::core_supports_mini_cart_drawer()`），
+  不宣告做不到的相依。主檔加 `Requires Plugins: ys-cart`（與 affiliate 一致）。
+
+### 測試（R48 #4：測試入 repo，乾淨 clone 可重跑）
+
+- `.gitignore` 不再忽略 `tests/`。`php tests/run.php` 一次跑：靜態契約、`tests/regression/`、真瀏覽器 e2e。
+- 新增 `tests/e2e/`（headless Chrome `--dump-dom`，載入**真實核心** `ys-ec-cart.js`／CSS 與核心樣板
+  `templates/cart/mini-cart.php` 渲染結果）：`drawer-host-smoke`（modal：開關、dialog 屬性、焦點進出、inert、
+  Tab 循環、Esc／遮罩／× 關閉、核心自動開啟焦點同步、analytics 監聽仍收到點擊）、`drawer-checkout-smoke`
+  （核心結帳 CSS 之下不攔截、走 href）、`floating-mode-smoke`（核心浮動面板：非 modal、核心 outside-click
+  與本外掛 toggle 不打架）。對 1.2.0 的 JS 為 ★ 紅（重現 R48 #2／#3）。
+- `tests/regression/v121_mini_cart_drawer.php`：1.2.x 結構契約（含最低核心版本四處一致）。
+
 ## [1.2.0] - 2026-08-22
 
 ### Added

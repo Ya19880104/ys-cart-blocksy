@@ -65,10 +65,11 @@ final class YSCartBlocksyPlugin {
 			return;
 		}
 
+		// v1.2.1：排在核心購物車樣式之後（抽屜與浮動面板的 override 都以核心為基底）。
 		wp_enqueue_style(
 			'ys-cart-blocksy',
 			YS_CART_BLOCKSY_URL . 'assets/css/ys-cart-blocksy.css',
-			[],
+			wp_style_is( 'ys-ec-cart', 'registered' ) ? [ 'ys-ec-cart' ] : [],
 			YS_CART_BLOCKSY_VERSION
 		);
 

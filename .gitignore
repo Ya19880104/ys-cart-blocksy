@@ -1,4 +1,5 @@
-/tests/
+# v1.2.1：tests/ 入 repo（乾淨 clone 可重跑；打包腳本排除 tests/）
+/tests/e2e/.out/
 *.zip
 *.log
 .DS_Store

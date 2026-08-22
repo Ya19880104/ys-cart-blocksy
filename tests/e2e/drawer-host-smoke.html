@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<title>ys-cart-blocksy e2e — drawer host（modal）</title>
+<link rel="stylesheet" href="{{CORE_URL}}/assets/css/ys-ec-cart.css">
+<link rel="stylesheet" href="{{SELF_URL}}/assets/css/ys-cart-blocksy.css">
+<style>
+  body { font-family: system-ui, sans-serif; margin: 0; }
+  #hdr { padding: 12px 16px; border-bottom: 1px solid #ddd; }
+  #main { padding: 16px; }
+  .pass { color: #15803d; } .fail { color: #dc2626; font-weight: 600; } .row { font-size: 14px; padding: 2px 0; }
+</style>
+</head>
+<body>
+<!-- 核心右下角浮動購物車關閉：本外掛在 wp_footer(20) 以核心同一份樣板輸出抽屜（host＋遮罩） -->
+<header id="hdr">
+  <a href="#ys-e2e-cart-page" class="ys-cart-blocksy-item ys-cart-blocksy-cart" data-ys-cart-blocksy-action="drawer"
+     aria-haspopup="dialog" aria-expanded="false" aria-controls="ys-ec-mini-cart-panel" aria-label="Cart">
+    <span class="ys-cart-blocksy-cart-icon-wrap">cart <span class="ys-cart-blocksy-cart-badge" data-ys-cart-blocksy-count>3</span></span>
+  </a>
+</header>
+<main id="main">
+  <button type="button" id="add" class="ys-ec-add-to-cart-detail" data-product-id="1">加入購物車</button>
+  <a id="other" href="#other">其他連結</a>
+  <div id="result">執行中…</div>
+</main>
+<div class="ys-cart-blocksy-drawer-host" data-ys-cart-blocksy-drawer-host>
+  <div class="ys-cart-blocksy-drawer-backdrop" data-ys-cart-blocksy-drawer-backdrop aria-hidden="true"></div>
+  {{MINI_CART_HTML}}
+</div>
+<script id="ys-e2e-results" type="application/json"></script>
+<script src="{{SELF_URL}}/tests/e2e/support/e2e.js"></script>
+<!-- 真實 enqueue 序：核心 ys-ec-cart 先（本外掛 JS 相依它） -->
+<script src="{{CORE_URL}}/assets/js/ys-ec-cart.js"></script>
+<script src="{{BLOCKSY_JS_URL}}"></script>
+<script>
+ysE2E.run(async function () {
+  var A = ysE2E.assert, tick = ysE2E.tick;
+  var T = function () { return document.querySelector('a.ys-cart-blocksy-cart'); };
+  var P = function () { return document.getElementById('ys-ec-mini-cart-panel'); };
+  var isOpen = function () { return P().classList.contains('ys-ec-mini-cart-open'); };
+  var hdr = document.getElementById('hdr'), main = document.getElementById('main');
+  var host = document.querySelector('[data-ys-cart-blocksy-drawer-host]');
+  var closeBtn = document.getElementById('ys-ec-mini-cart-close');
+  var add = document.getElementById('add');
+  var analytics = 0;
+  document.addEventListener('click', function (e) { if (e.target.closest && e.target.closest('a.ys-cart-blocksy-cart')) analytics++; });
+
+  A('前置：核心 JS 已綁定迷你購物車（toggle data-ys-ec-cart-bound=1）', document.getElementById('ys-ec-mini-cart-toggle').getAttribute('data-ys-ec-cart-bound') === '1');
+  A('前置：本外掛 JS 已載入（window.YsCartBlocksy.miniCart）', !!(window.YsCartBlocksy && window.YsCartBlocksy.miniCart));
+  A('前置：面板可顯示（#ys-ec-mini-cart 與面板 display 不是 none）', getComputedStyle(document.getElementById('ys-ec-mini-cart')).display !== 'none' && getComputedStyle(P()).display !== 'none');
+
+  // dialog 契約（靜態屬性）
+  var labelledby = P().getAttribute('aria-labelledby');
+  A('★ 面板補上 role=dialog、aria-modal=true（自有抽屜＝modal）', P().getAttribute('role') === 'dialog' && P().getAttribute('aria-modal') === 'true', P().getAttribute('role') + '/' + P().getAttribute('aria-modal'));
+  A('★ aria-labelledby 指向核心樣板標題「購物車」', !!labelledby && !!document.getElementById(labelledby) && document.getElementById(labelledby).textContent.trim() === '購物車', labelledby);
+
+  // 1. 點擊頁首 icon → 開
+  T().focus();
+  T().click();
+  await tick();
+  A('★ 點擊頁首 icon → 面板開啟（核心 .ys-ec-mini-cart-open）', isOpen());
+  A('aria-expanded=true、host 開啟 class', T().getAttribute('aria-expanded') === 'true' && host.classList.contains('ys-cart-blocksy-drawer-host--open'));
+  A('preventDefault 生效：沒有 hash 導向', location.hash !== '#ys-e2e-cart-page', location.hash);
+  A('★ 不 stopPropagation：document 的 analytics 監聽收到這次點擊', analytics === 1, analytics);
+  A('★ 焦點進面板（第一個可聚焦元素＝× 關閉鈕）', document.activeElement === closeBtn, document.activeElement && document.activeElement.id);
+  A('★ 背景 inert：頁首與主內容 inert、drawer host 不 inert', hdr.hasAttribute('inert') && main.hasAttribute('inert') && !host.hasAttribute('inert'));
+
+  // 2. Tab 焦點圈
+  var focusables = Array.prototype.filter.call(P().querySelectorAll('a[href], button:not([disabled])'), function (el) { return el.getClientRects().length > 0; });
+  var first = focusables[0], last = focusables[focusables.length - 1];
+  A('前置：面板內有 ≥3 個可聚焦元素（×、移除、查看購物車／前往結帳）', focusables.length >= 3, focusables.length);
+  last.focus();
+  var ev1 = ysE2E.key(last, 'Tab');
+  A('★ Tab 在最後一個可聚焦元素 → 回到第一個（焦點圈）', ev1.defaultPrevented && document.activeElement === first);
+  first.focus();
+  var ev2 = ysE2E.key(first, 'Tab', { shiftKey: true });
+  A('★ Shift+Tab 在第一個 → 到最後一個', ev2.defaultPrevented && document.activeElement === last);
+
+  // 3. Esc → 關，焦點回 opener
+  ysE2E.key(document.activeElement, 'Escape');
+  await tick();
+  A('★ Esc 關閉，焦點回到頁首 icon（opener）', !isOpen() && document.activeElement === T(), document.activeElement && (document.activeElement.id || document.activeElement.className));
+  A('關閉後 inert 還原、aria-expanded=false、host class 移除', !hdr.hasAttribute('inert') && !main.hasAttribute('inert') && T().getAttribute('aria-expanded') === 'false' && !host.classList.contains('ys-cart-blocksy-drawer-host--open'));
+
+  // 4. 遮罩關閉
+  T().click(); await tick();
+  A('再點 icon → 再開', isOpen() && document.activeElement === closeBtn);
+  document.querySelector('[data-ys-cart-blocksy-drawer-backdrop]').click(); await tick();
+  A('★ 點遮罩關閉，焦點回 opener、inert 還原', !isOpen() && document.activeElement === T() && !hdr.hasAttribute('inert'));
+
+  // 5. 核心自動開啟（加入購物車事件）→ 焦點同步、opener＝當時的焦點元素
+  add.focus();
+  document.dispatchEvent(new CustomEvent('ys_ec_cart_updated', { detail: { cart_count: 3 } }));
+  await tick();
+  A('★ 核心自動開啟 → 面板開、焦點進面板、背景 inert、aria-expanded 同步', isOpen() && document.activeElement === closeBtn && hdr.hasAttribute('inert') && T().getAttribute('aria-expanded') === 'true');
+  A('核心 badge 同步到 Blocksy badge（data-ys-cart-blocksy-count=3）', document.querySelector('[data-ys-cart-blocksy-count]').textContent.trim() === '3');
+  // 6. 核心 × 關閉 → 焦點回加入購物車按鈕
+  closeBtn.click(); await tick();
+  A('★ 核心 × 關閉 → 焦點回到加入購物車按鈕、inert 還原、aria-expanded=false', !isOpen() && document.activeElement === add && !hdr.hasAttribute('inert') && T().getAttribute('aria-expanded') === 'false', document.activeElement && document.activeElement.id);
+
+  // 7. 核心 outside-click 關閉（點面板外）→ 本外掛同步
+  T().click(); await tick();
+  A('前置：再開', isOpen());
+  document.body.click(); await tick();
+  A('核心 outside-click 關閉 → aria／inert 同步、焦點回 opener', !isOpen() && T().getAttribute('aria-expanded') === 'false' && !hdr.hasAttribute('inert') && document.activeElement === T());
+
+  // 8. 修飾鍵點擊不攔截（交給瀏覽器：新分頁開 href；headless 不改本頁 hash，故以 defaultPrevented 判）
+  var ctrlPrevented = null;
+  window.addEventListener('click', function (e) { if (e.ctrlKey) ctrlPrevented = e.defaultPrevented; }, { once: true });
+  T().dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, ctrlKey: true, button: 0 }));
+  await tick();
+  A('Ctrl+點擊不攔截（不 preventDefault、面板不開）', ctrlPrevented === false && !isOpen(), String(ctrlPrevented));
+  history.replaceState(null, '', location.pathname);
+});
+</script>
+</body>
+</html>
