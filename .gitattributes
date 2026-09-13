@@ -1,0 +1,2 @@
+# Keep the reviewed bundled Hub runtime byte-stable across platforms.
+vendor/yangsheep/ys-plugin-hub-client/** text eol=lf

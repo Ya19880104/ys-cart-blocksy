@@ -2,6 +2,8 @@
 
 在 **Blocksy 佈景主題**（免費版即可）的頁首建構器（外觀 → 自訂 → 頁首）提供 YS CART 專屬元件，拖放即用：
 
+目前版本：**1.2.3**
+
 | 元件 | 說明 |
 |------|------|
 | **YS 帳號** | 帳號圖示。未登入連到 YS CART 登入頁、登入後連到會員中心（兩者皆可改為自訂連結），可選顯示文字標籤。 |
@@ -11,7 +13,7 @@
 
 ## 需求
 
-- WordPress 6.0+、PHP 8.1+
+- WordPress 6.0+、PHP 8.2+
 - [Blocksy](https://creativethemes.com/blocksy/) 佈景主題（免費版即可，支援 child theme）
 - YS CART 外掛（「YS 商品搜尋」「YS 搜尋框」需啟用核心「商品即時搜尋」功能：商店設定 → 功能模組）
 - 迷你購物車 drawer 需 **YS CART ≥ 2.58.2**（`YS_CART_BLOCKSY_DRAWER_MIN_CORE`）；舊核心的購物車元件自動退回「前往購物車頁」

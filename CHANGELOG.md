@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.3] - 2026-09-13
+
+### Changed
+
+- 內嵌 YS Plugin Hub Client 同步至受審的 `2.0.6` full runtime：納入 Shipping 基準的 updater、快取資料、schema readback 與日誌防護，並統一工具箱選單的晚期排序與去重。
+- 外掛最低 PHP 版本調整為 8.2，與內嵌 Hub Client 的執行環境一致；Blocksy 元件、Customizer 設定與迷你購物車核心門檻不變。
+
 ## [1.2.2] - 2026-08-23
 
 R49 對 1.2.1 的三個 Minor 收斂；不改行為契約（狀態唯一真值仍是核心面板 `.ys-ec-mini-cart-open`、零複製購物車邏輯、
