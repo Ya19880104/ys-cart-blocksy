@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.2.4] - 2026-09-13
+
+### Changed
+
+- 內嵌 YS Plugin Hub Client 同步至受審的 `2.0.7` full runtime，工具箱市集與日誌改走 WordPress REST，保留既有權限、資料 owner、更新器與 first-loader 契約。Blocksy 元件、Customizer 設定、前台資產與迷你購物車核心門檻不變。
+
 ## [1.2.3] - 2026-09-13
 
 ### Changed
