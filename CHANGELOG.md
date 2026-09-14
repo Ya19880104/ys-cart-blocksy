@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.5] - 2026-09-14
+
+### Fixed
+
+- 內嵌完整 YS Plugin Hub Client 同步至 2.0.8，恢復後台父選單名稱「YS Plugin」。即使另一個 2.0.7 full client 的舊選單 normalizer 先載入，仍由獨立、僅執行一次的晚期命名處理修正名稱；不啟動第二個 client。
+- 保留 2.0.7 的 REST、市集、更新器、選單 slug、權限、工具子選單排序與去重。Blocksy 前台元件、資產與迷你購物車核心門檻不變。
+
 ## [1.2.4] - 2026-09-13
 
 ### Changed

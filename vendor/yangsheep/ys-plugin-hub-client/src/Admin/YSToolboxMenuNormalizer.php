@@ -1,6 +1,6 @@
 <?php
 /**
- * Shared 電商工具箱 menu normalization.
+ * Shared YS Plugin menu normalization.
  *
  * @package YangSheep\PluginHubClient\Admin
  */
@@ -74,8 +74,8 @@ final class YSToolboxMenuNormalizer {
             return;
         }
 
-        $entry[0] = esc_html__( '電商工具箱', 'ys-plugin-hub-client' );
-        $entry[3] = esc_html__( '電商工具箱', 'ys-plugin-hub-client' );
+        $entry[0] = esc_html__( 'YS Plugin', 'ys-plugin-hub-client' );
+        $entry[3] = esc_html__( 'YS Plugin', 'ys-plugin-hub-client' );
         $entry[6] = 'dashicons-store';
 
         unset( $menu[ $source_key ] );

@@ -3,7 +3,7 @@
  * Plugin Name: YS Plugin Hub Client
  * Plugin URI:  https://yangsheep.com.tw
  * Description: YANGSHEEP DESIGN 外掛市集客戶端 — 連接 Hub 取得更新和市集資訊。
- * Version:     2.0.7
+ * Version:     2.0.8
  * Author:      YANGSHEEP DESIGN
  * Author URI:  https://yangsheep.com.tw
  * License:     GPL-2.0-or-later
@@ -35,6 +35,13 @@ if ( class_exists( '\YangSheep\PluginHubClient\Admin\YSToolboxMenuNormalizer', f
     \YangSheep\PluginHubClient\Admin\YSToolboxMenuNormalizer::register();
 }
 
+// Register after the shared normalizer, including a 2.0.7 class loaded first.
+// This menu-only compatibility pass must also run before the runtime guard.
+if ( ! class_exists( '\YangSheep\PluginHubClient\Admin\YSToolboxBrandingCompatibility', false ) ) {
+    require_once __DIR__ . '/src/Admin/YSToolboxBrandingCompatibility.php';
+}
+\YangSheep\PluginHubClient\Admin\YSToolboxBrandingCompatibility::register();
+
 /* ──────────────────────────────────────────────
  * 防止重複載入（必須在常數定義之前！）
  * 當多個 YS 外掛的 vendor/ 都包含此檔案時，只載入第一個。
@@ -46,7 +53,7 @@ if ( defined( 'YS_HUB_CLIENT_VERSION' ) || did_action( 'ys_hub_client_loaded' ) 
 /* ──────────────────────────────────────────────
  * 常數定義（放在防重複之後，確保只定義一次）
  * ────────────────────────────────────────────── */
-define( 'YS_HUB_CLIENT_VERSION', '2.0.7' );
+define( 'YS_HUB_CLIENT_VERSION', '2.0.8' );
 define( 'YS_HUB_CLIENT_FILE', __FILE__ );
 define( 'YS_HUB_CLIENT_DIR', plugin_dir_path( __FILE__ ) );
 define( 'YS_HUB_CLIENT_URL', plugin_dir_url( __FILE__ ) );

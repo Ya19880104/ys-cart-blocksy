@@ -104,8 +104,8 @@ final class YSPluginHubClient {
         if ( ! $toolbox_exists ) {
             // 頂層選單：首頁直接顯示市集；名稱、圖示與位置由共用契約固定。
             add_menu_page(
-                esc_html__( '電商工具箱', 'ys-plugin-hub-client' ),
-                esc_html__( '電商工具箱', 'ys-plugin-hub-client' ),
+                esc_html__( 'YS Plugin', 'ys-plugin-hub-client' ),
+                esc_html__( 'YS Plugin', 'ys-plugin-hub-client' ),
                 'manage_options',
                 'ys-toolbox',
                 array( YSMarketplacePage::class, 'render' ),
