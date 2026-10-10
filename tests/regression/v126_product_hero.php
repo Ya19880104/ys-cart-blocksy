@@ -91,7 +91,17 @@ function ys_v126_child(): void {
 		eval( <<<'PHP'
 namespace YangSheep\Ecommerce\Services\Setup {
 	class YSPageResolver {
-		public static function is_product_detail_request(): bool {
+		public static function is_product_detail_request() {
+			$kind = getenv( 'YS_V126_CORE_RETURN' );
+			if ( 'null' === $kind ) {
+				return null;
+			}
+			if ( 'empty' === $kind ) {
+				return [];
+			}
+			if ( 'item' === $kind ) {
+				return [ 'x' ];
+			}
 			return getenv( 'YS_V126_CORE_SAYS' ) === '1';
 		}
 	}
@@ -197,7 +207,7 @@ $run_case = static function ( string $name, array $env ) use ( $root, $check ): 
 		$base[ $key ] = $value;
 	}
 	$spec = [ 0 => [ 'pipe', 'r' ], 1 => [ 'pipe', 'w' ], 2 => [ 'pipe', 'w' ] ];
-	$proc = proc_open( [ PHP_BINARY, __FILE__ ], $spec, $pipes, $root, $base );
+	$proc = proc_open( [ PHP_BINARY, '-d', 'display_errors=stderr', __FILE__ ], $spec, $pipes, $root, $base );
 	if ( ! is_resource( $proc ) ) {
 		$check( $name, false, 'cannot start child' );
 		return;
@@ -254,10 +264,9 @@ $check(
 		&& str_contains( $changelog, '商品頁不再出現兩個標題（H1）：在 YS CART 商品頁不輸出 Blocksy 的頁面標題；商店與分類頁不變。' )
 );
 $check(
-	'README：目前版本 1.2.6，並寫明 2.69.10 以後用核心判斷',
+	'README：目前版本 1.2.6，並用店家語說明 2.69.10 以後由核心判斷商品頁',
 	str_contains( $readme, '目前版本：**1.2.6**' )
-		&& str_contains( $readme, '2.69.10' )
-		&& str_contains( $readme, 'is_product_detail_request' )
+		&& str_contains( $readme, 'YS CART 2.69.10 以後由核心判斷哪一頁是商品頁，較早的版本由本外掛依商品網址判斷' )
 );
 
 $ready = [
@@ -278,6 +287,27 @@ $run_case( 'core-path：核心判定不是商品頁時，路徑 shop/tea 也不�
 	'YS_V126_URI'        => '/shop/tea/',
 	'YS_V126_EXPECT'     => 'true',
 	'YS_V126_REGISTERED' => 'yes',
+] );
+$run_case( 'core-nonbool-null：核心回傳 null 時不出錯，不當成商品頁', $ready + [
+	'YS_V126_CORE'        => 'present',
+	'YS_V126_CORE_RETURN' => 'null',
+	'YS_V126_URI'         => '/shop/tea/',
+	'YS_V126_EXPECT'      => 'true',
+	'YS_V126_REGISTERED'  => 'yes',
+] );
+$run_case( 'core-nonbool-empty：核心回傳空陣列時不出錯，不當成商品頁', $ready + [
+	'YS_V126_CORE'        => 'present',
+	'YS_V126_CORE_RETURN' => 'empty',
+	'YS_V126_URI'         => '/shop/tea/',
+	'YS_V126_EXPECT'      => 'true',
+	'YS_V126_REGISTERED'  => 'yes',
+] );
+$run_case( 'core-nonbool-item：核心回傳非空陣列時不出錯，當成商品頁', $ready + [
+	'YS_V126_CORE'        => 'present',
+	'YS_V126_CORE_RETURN' => 'item',
+	'YS_V126_URI'         => '/shop/',
+	'YS_V126_EXPECT'      => 'false',
+	'YS_V126_REGISTERED'  => 'yes',
 ] );
 $run_case( 'fallback-query：沒有核心方法時，ys_ec_product_slug 關 hero', $ready + [
 	'YS_V126_CORE'       => 'absent',

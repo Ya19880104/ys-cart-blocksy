@@ -17,7 +17,7 @@
 - [Blocksy](https://creativethemes.com/blocksy/) 佈景主題（免費版即可，支援 child theme）
 - YS CART 外掛（「YS 商品搜尋」「YS 搜尋框」需啟用核心「商品即時搜尋」功能：商店設定 → 功能模組）
 - 迷你購物車 drawer 需 **YS CART ≥ 2.58.2**（`YS_CART_BLOCKSY_DRAWER_MIN_CORE`）；舊核心的購物車元件自動退回「前往購物車頁」
-- 商品頁的 Blocksy 頁面標題：核心 **2.69.10** 以後用 `YSPageResolver::is_product_detail_request()` 判斷要不要關掉；較早的核心由本外掛依商品路由自行判斷（rewrite 的商品 slug、`?product=`、路徑 `shop/<slug>`）。只關 YS CART 商品詳情頁，商店與分類頁的標題保留。
+- YS CART 2.69.10 以後由核心判斷哪一頁是商品頁，較早的版本由本外掛依商品網址判斷。只關商品詳情頁，商店與分類頁的標題保留。
 
 ## 使用方式
 
