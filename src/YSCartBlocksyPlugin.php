@@ -15,6 +15,9 @@
  * 關閉時，本外掛在 wp_footer 以核心同一份樣板輸出迷你購物車（同一套 ID／JS／REST），
  * 只換成右側抽屜的樣式——功能與核心浮動購物車完全相同，不複製任何購物車邏輯。
  *
+ * v1.2.6：YS CART 商品詳情頁不輸出 Blocksy 頁面標題（見 YSBlocksyProductHero）。
+ * 商店列表與分類頁不動。
+ *
  * @package YangSheep\CartBlocksy
  */
 
@@ -41,6 +44,7 @@ final class YSCartBlocksyPlugin {
 		add_action( 'wp_footer', [ self::class, 'maybe_render_mini_cart_drawer' ], 20 );
 		add_action( 'admin_notices', [ self::class, 'maybe_render_dependency_notice' ] );
 		add_action( 'init', [ self::class, 'load_textdomain' ] );
+		YSBlocksyProductHero::register();
 	}
 
 	/**

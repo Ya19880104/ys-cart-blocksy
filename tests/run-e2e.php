@@ -67,6 +67,15 @@ $render_mini_cart = static function () use ( $core ): string {
 	$totals       = [ 'subtotal' => 1880, 'item_count' => 3 ];
 	$checkout_url = '#ys-e2e-checkout';
 	$cart_url     = '#ys-e2e-cart-page';
+	// 整合線樣板讀 $cart（分區合計、安全動作、頁尾結帳）。沒有分區政策時行為與舊樣板相同。
+	$cart = [
+		'items'                => $items,
+		'totals'               => $totals,
+		'allowed_safe_actions' => [ 'read', 'add', 'increase', 'decrease', 'remove', 'coupon', 'checkout' ],
+	];
+	if ( ! defined( 'YS_ECOMMERCE_PATH' ) ) {
+		define( 'YS_ECOMMERCE_PATH', $core . '/' );
+	}
 	ob_start();
 	include $core . '/templates/cart/mini-cart.php';
 	return (string) ob_get_clean();

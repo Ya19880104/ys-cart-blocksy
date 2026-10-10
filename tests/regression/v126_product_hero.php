@@ -172,7 +172,12 @@ $read = static function ( string $rel ) use ( $root ): string {
 	return str_replace( "\r\n", "\n", (string) file_get_contents( $full ) );
 };
 $check = static function ( string $name, bool $ok, string $detail = '' ) use ( &$pass, &$fail ): void {
-	$line = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS, 1 )[0]['line'] ?? 0;
+	$trace = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS, 3 );
+	$line  = $trace[1]['line'] ?? ( $trace[0]['line'] ?? 0 );
+	$caller = (string) ( $trace[1]['function'] ?? '' );
+	if ( str_contains( $caller, '{closure' ) && isset( $trace[2]['line'] ) ) {
+		$line = $trace[2]['line'];
+	}
 	if ( $ok ) {
 		$pass++;
 		echo "  PASS  {$name} (line {$line})\n";

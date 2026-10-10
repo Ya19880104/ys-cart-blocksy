@@ -22,6 +22,24 @@ namespace {
 	if ( ! function_exists( 'wp_create_nonce' ) ) {
 		function wp_create_nonce( $action = -1 ): string { return 'e2e-nonce'; }
 	}
+	if ( ! function_exists( 'remove_query_arg' ) ) {
+		function remove_query_arg( $key, $url = '' ): string {
+			unset( $key );
+			return is_string( $url ) ? $url : '';
+		}
+	}
+}
+
+namespace YangSheep\Ecommerce\Services\Storefront {
+	if ( ! class_exists( YSCartService::class, false ) ) {
+		/** 分區導覽：e2e 快照沒有分區政策，回空字串，不載入核心類別。 */
+		final class YSCartService {
+			public static function render_partition_navigation( array $cart, string $surface, string $base_url, string $scope = 'default' ): string {
+				unset( $cart, $surface, $base_url, $scope );
+				return '';
+			}
+		}
+	}
 }
 
 namespace YangSheep\Ecommerce\Handlers {
