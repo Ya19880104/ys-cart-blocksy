@@ -207,7 +207,7 @@ $run_case = static function ( string $name, array $env ) use ( $root, $check ): 
 		$base[ $key ] = $value;
 	}
 	$spec = [ 0 => [ 'pipe', 'r' ], 1 => [ 'pipe', 'w' ], 2 => [ 'pipe', 'w' ] ];
-	$proc = proc_open( [ PHP_BINARY, '-d', 'display_errors=stderr', __FILE__ ], $spec, $pipes, $root, $base );
+	$proc = proc_open( [ PHP_BINARY, '-d', 'display_errors=stderr', '-d', 'error_reporting=-1', __FILE__ ], $spec, $pipes, $root, $base );
 	if ( ! is_resource( $proc ) ) {
 		$check( $name, false, 'cannot start child' );
 		return;
